@@ -19,19 +19,32 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 
 const formSchema = insertRecipeSchema.extend({
   ingredientsEn: z.array(z.object({
-    name: z.string().min(1),
-    amount: z.string().min(1),
-  })).min(1),
+    name: z.string().optional(),
+    amount: z.string().optional(),
+  })).optional().default([]),
   ingredientsAr: z.array(z.object({
-    name: z.string().min(1),
-    amount: z.string().min(1),
-  })).min(1),
-  toolsEn: z.array(z.string().min(1)),
-  toolsAr: z.array(z.string().min(1)),
+    name: z.string().optional(),
+    amount: z.string().optional(),
+  })).optional().default([]),
+  toolsEn: z.array(z.string()).optional().default([]),
+  toolsAr: z.array(z.string()).optional().default([]),
   additionalLinks: z.array(z.object({
-    title: z.string().min(1),
-    url: z.string().url(),
-  })),
+    title: z.string().optional(),
+    url: z.string().url().optional(),
+  })).optional().default([]),
+  descriptionEn: z.string().optional(),
+  descriptionAr: z.string().optional(),
+  calories: z.number().optional(),
+  prepTime: z.number().optional(),
+  images: z.array(z.string()).optional().default([]),
+  videoUrl: z.string().optional(),
+  rating: z.number().min(0).max(5).optional().default(0),
+}).refine((data) => {
+  // Only require basic info: names, country, temperature, category, and instructions
+  return data.nameEn && data.nameAr && data.country && data.servingTemperature && 
+         data.category && data.instructionsEn && data.instructionsAr;
+}, {
+  message: "اسم الوصفة والبلد ودرجة الحرارة والفئة وطريقة التحضير مطلوبة",
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -135,11 +148,11 @@ export function AddRecipe() {
     // Filter out empty strings from arrays
     const cleanedData = {
       ...data,
-      ingredientsEn: data.ingredientsEn.filter(ing => ing.name.trim() && ing.amount.trim()),
-      ingredientsAr: data.ingredientsAr.filter(ing => ing.name.trim() && ing.amount.trim()),
-      toolsEn: data.toolsEn.filter(tool => tool.trim()),
-      toolsAr: data.toolsAr.filter(tool => tool.trim()),
-      additionalLinks: data.additionalLinks.filter(link => link.title.trim() && link.url.trim()),
+      ingredientsEn: (data.ingredientsEn || []).filter(ing => ing.name?.trim() && ing.amount?.trim()),
+      ingredientsAr: (data.ingredientsAr || []).filter(ing => ing.name?.trim() && ing.amount?.trim()),
+      toolsEn: (data.toolsEn || []).filter(tool => tool?.trim()),
+      toolsAr: (data.toolsAr || []).filter(tool => tool?.trim()),
+      additionalLinks: (data.additionalLinks || []).filter(link => link.title?.trim() && link.url?.trim()),
     };
 
     if (editId) {
@@ -342,7 +355,7 @@ export function AddRecipe() {
                       name="calories"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('calories')}</FormLabel>
+                          <FormLabel>{t('calories')} (اختياري)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -362,7 +375,7 @@ export function AddRecipe() {
                       name="prepTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('prepTime')}</FormLabel>
+                          <FormLabel>{t('prepTime')} (اختياري)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -385,7 +398,7 @@ export function AddRecipe() {
                       name="descriptionEn"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description (English)</FormLabel>
+                          <FormLabel>Description (English) - اختياري</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Brief description in English..."
@@ -404,7 +417,7 @@ export function AddRecipe() {
                       name="descriptionAr"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>الوصف (العربية)</FormLabel>
+                          <FormLabel>الوصف (العربية) - اختياري</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="وصف مختصر بالعربية..."
@@ -426,7 +439,7 @@ export function AddRecipe() {
                     name="videoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('videoTutorial')}</FormLabel>
+                        <FormLabel>{t('videoTutorial')} (اختياري)</FormLabel>
                         <FormControl>
                           <Input
                             type="url"
@@ -443,7 +456,7 @@ export function AddRecipe() {
 
                   {/* Ingredients */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('ingredients')}</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('ingredients')} (اختياري)</h3>
                     {form.watch('ingredientsEn').map((_, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                         <FormField
@@ -586,7 +599,7 @@ export function AddRecipe() {
 
                   {/* Tools */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('requiredTools')}</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('requiredTools')} (اختياري)</h3>
                     {form.watch('toolsEn').map((_, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormField
@@ -652,7 +665,7 @@ export function AddRecipe() {
 
                   {/* Additional Links */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('additionalLinks')}</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('additionalLinks')} (اختياري)</h3>
                     {form.watch('additionalLinks').map((_, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormField
