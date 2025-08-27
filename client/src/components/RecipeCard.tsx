@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Globe, Flame, Leaf, ShoppingCart } from 'lucide-react';
+import { Heart, Globe, Flame, Leaf, ShoppingCart, Trash2 } from 'lucide-react';
 import { Recipe } from '@shared/schema';
 import { processIngredients } from '@/utils/ingredientUtils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -155,6 +156,35 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           >
             <Heart className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                data-testid={`delete-recipe-${recipe.id}`}
+                title={t('deleteRecipe')}
+              >
+                <Trash2 className="w-4 h-4 text-red-500" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('confirmDelete')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('deleteRecipeConfirmation').replace('{{recipeName}}', language === 'ar' ? recipe.nameAr || recipe.nameEn : recipe.nameEn || recipe.nameAr)}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(recipe.id)}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  {t('delete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <ShareButton recipe={recipe} />
         </div>
       </CardContent>

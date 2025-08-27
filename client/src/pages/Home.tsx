@@ -66,14 +66,14 @@ export function Home() {
     try {
       await apiRequest('DELETE', `/api/recipes/${id}`);
       toast({
-        title: t('recipeSaved'),
-        description: t('recipeDeleted'),
+        title: t('recipeDeleted'),
+        description: t('recipeDeletedSuccessfully'),
       });
       refetch();
     } catch (error) {
       toast({
         title: t('errorOccurred'),
-        description: 'Failed to delete recipe',
+        description: t('failedToDeleteRecipe'),
         variant: 'destructive',
       });
     }

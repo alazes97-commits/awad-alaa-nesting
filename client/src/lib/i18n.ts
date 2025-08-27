@@ -863,21 +863,33 @@ export const translations: Translations = {
     en: "Failed to add to shopping list",
     ar: "فشل في إضافة لقائمة التسوق"
   },
-  vegetables: {
-    en: "Vegetables",
-    ar: "خضار"
+  deleteRecipe: {
+    en: "Delete Recipe",
+    ar: "حذف الوصفة"
   },
-  fruits: {
-    en: "Fruits",
-    ar: "فواكه"
+  confirmDelete: {
+    en: "Are you sure?",
+    ar: "هل أنت متأكد؟"
   },
-  grains: {
-    en: "Grains",
-    ar: "حبوب"
+  deleteRecipeConfirmation: {
+    en: "This action cannot be undone. This will permanently delete the recipe '{{recipeName}}'.",
+    ar: "هذا الإجراء لا يمكن التراجع عنه. سيتم حذف الوصفة '{{recipeName}}' نهائياً."
   },
-  beverages: {
-    en: "Beverages",
-    ar: "مشروبات"
+  delete: {
+    en: "Delete",
+    ar: "حذف"
+  },
+  recipeDeleted: {
+    en: "Recipe Deleted",
+    ar: "تم حذف الوصفة"
+  },
+  recipeDeletedSuccessfully: {
+    en: "Recipe has been deleted successfully",
+    ar: "تم حذف الوصفة بنجاح"
+  },
+  failedToDeleteRecipe: {
+    en: "Failed to delete recipe",
+    ar: "فشل في حذف الوصفة"
   },
   listView: {
     en: "List View",
