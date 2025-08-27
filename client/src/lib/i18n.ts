@@ -8,8 +8,8 @@ export interface Translations {
 export const translations: Translations = {
   // App Name
   appName: {
-    en: "Awad & Alaa Kitchen",
-    ar: "مطبخ عوض وآلاء"
+    en: "Family Nesting",
+    ar: "Family Nesting"
   },
   
   // Navigation

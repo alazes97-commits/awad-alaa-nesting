@@ -1,6 +1,6 @@
 # Overview
 
-This is a bilingual (English/Arabic) recipe management web application called "Awad & Alaa Kitchen". The application allows users to browse, search, filter, add, edit, and view detailed information about recipes. It features a comprehensive recipe system with support for ingredients, cooking instructions, tools, ratings, images, video links, and cultural information including country of origin and serving temperature preferences.
+This is a bilingual (English/Arabic) recipe management web application called "Family Nesting". The application allows users to browse, search, filter, add, edit, and view detailed information about recipes with family-based synchronization. It features a comprehensive recipe system with support for ingredients, cooking instructions, tools, ratings, images, video links, cultural information, and email-based family sync where the app name dynamically changes to "(Family Name) Nesting" when users join a family group.
 
 # User Preferences
 

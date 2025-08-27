@@ -1,7 +1,7 @@
 {
-  "name": "مطبخ عوض وآلاء - Awad & Alaa Kitchen",
-  "short_name": "مطبخ عوض وآلاء",
-  "description": "تطبيق إدارة الوصفات وقوائم التسوق والمخزن مع المزامنة الفورية",
+  "name": "Family Nesting",
+  "short_name": "Family Nesting",
+  "description": "Family recipe management app with real-time sync and shared shopping lists",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
