@@ -30,7 +30,7 @@ export function Home() {
     rating?: number;
   }>({});
 
-  const { data: recipes, isLoading, refetch } = useQuery({
+  const { data: recipes = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/recipes', searchQuery, filters, user?.familyGroupId],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -50,13 +50,12 @@ export function Home() {
       }
       return response.json();
     },
+    enabled: !!user, // Only fetch when user is loaded
   });
 
   const handleViewRecipe = (recipe: Recipe) => {
-    console.log('handleViewRecipe called with recipe:', recipe);
     setSelectedRecipe(recipe);
     setIsDetailModalOpen(true);
-    console.log('Modal state set to open:', true);
   };
 
   const handleEditRecipe = (recipe: Recipe) => {
@@ -127,7 +126,7 @@ export function Home() {
               </div>
             ))}
           </div>
-        ) : recipes && recipes.length > 0 ? (
+        ) : recipes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8" data-testid="recipes-grid">
             {recipes.map((recipe: Recipe) => (
               <RecipeCard

@@ -25,10 +25,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   const { user } = useUser();
   const { toast } = useToast();
 
-  console.log('RecipeDetailModal props:', { recipe, isOpen });
-
   if (!recipe) {
-    console.log('No recipe provided to modal');
     return null;
   }
 

@@ -113,6 +113,7 @@ export function AddRecipe() {
     mutationFn: (data: FormData) => apiRequest('POST', '/api/recipes', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/recipes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/recipes', '', {}, user?.familyGroupId] });
       toast({
         title: t('recipeSaved'),
         description: 'Recipe created successfully',
@@ -133,6 +134,7 @@ export function AddRecipe() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/recipes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/recipes', editId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/recipes', '', {}, user?.familyGroupId] });
       toast({
         title: t('recipeSaved'),
         description: 'Recipe updated successfully',
