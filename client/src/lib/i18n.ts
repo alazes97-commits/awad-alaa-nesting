@@ -310,6 +310,308 @@ export const translations: Translations = {
   toolsRequired: {
     en: "Tools Required",
     ar: "الأدوات المطلوبة"
+  },
+
+  // Shopping List
+  shoppingList: {
+    en: "Shopping List",
+    ar: "قائمة التسوق"
+  },
+  addToShoppingList: {
+    en: "Add to Shopping List",
+    ar: "إضافة لقائمة التسوق"
+  },
+  shoppingListEmpty: {
+    en: "Your shopping list is empty",
+    ar: "قائمة التسوق فارغة"
+  },
+  markCompleted: {
+    en: "Mark as Completed",
+    ar: "تحديد كمكتمل"
+  },
+  markIncomplete: {
+    en: "Mark as Incomplete", 
+    ar: "تحديد كغير مكتمل"
+  },
+  clearCompleted: {
+    en: "Clear Completed Items",
+    ar: "مسح العناصر المكتملة"
+  },
+  addShoppingItem: {
+    en: "Add Shopping Item",
+    ar: "إضافة عنصر للتسوق"
+  },
+
+  // Pantry
+  pantry: {
+    en: "Pantry",
+    ar: "المؤن"
+  },
+  myPantry: {
+    en: "My Pantry",
+    ar: "مؤنتي"
+  },
+  addToPantry: {
+    en: "Add to Pantry",
+    ar: "إضافة للمؤن"
+  },
+  pantryEmpty: {
+    en: "Your pantry is empty",
+    ar: "المؤن فارغة"
+  },
+  expiryDate: {
+    en: "Expiry Date",
+    ar: "تاريخ الانتهاء"
+  },
+  location: {
+    en: "Location",
+    ar: "المكان"
+  },
+  minimumStock: {
+    en: "Minimum Stock",
+    ar: "الحد الأدنى للمخزون"
+  },
+  lowStock: {
+    en: "Low Stock Alert",
+    ar: "تنبيه نقص المخزون"
+  },
+  expiringSoon: {
+    en: "Expiring Soon",
+    ar: "ينتهي قريباً"
+  },
+  addPantryItem: {
+    en: "Add Pantry Item",
+    ar: "إضافة عنصر للمؤن"
+  },
+
+  // Common Fields
+  itemName: {
+    en: "Item Name",
+    ar: "اسم العنصر"
+  },
+  itemNameEn: {
+    en: "Item Name (English)",
+    ar: "اسم العنصر (الإنجليزية)"
+  },
+  itemNameAr: {
+    en: "Item Name (Arabic)",
+    ar: "اسم العنصر (العربية)"
+  },
+  quantity: {
+    en: "Quantity",
+    ar: "الكمية"
+  },
+  unit: {
+    en: "Unit",
+    ar: "الوحدة"
+  },
+  notes: {
+    en: "Notes",
+    ar: "ملاحظات"
+  },
+  
+  // Units
+  kg: {
+    en: "Kilogram",
+    ar: "كيلوغرام"
+  },
+  gram: {
+    en: "Gram",
+    ar: "غرام"
+  },
+  cup: {
+    en: "Cup",
+    ar: "كوب"
+  },
+  piece: {
+    en: "Piece",
+    ar: "قطعة"
+  },
+  liter: {
+    en: "Liter",
+    ar: "لتر"
+  },
+  tablespoon: {
+    en: "Tablespoon",
+    ar: "ملعقة كبيرة"
+  },
+  teaspoon: {
+    en: "Teaspoon",
+    ar: "ملعقة صغيرة"
+  },
+
+  // Storage Locations
+  fridge: {
+    en: "Refrigerator",
+    ar: "الثلاجة"
+  },
+  freezer: {
+    en: "Freezer",
+    ar: "الفريزر"
+  },
+  pantryLocation: {
+    en: "Pantry",
+    ar: "المؤن"
+  },
+  cabinet: {
+    en: "Cabinet",
+    ar: "الخزانة"
+  },
+
+  // Food Categories
+  vegetables: {
+    en: "Vegetables",
+    ar: "خضروات"
+  },
+  fruits: {
+    en: "Fruits",
+    ar: "فواكه"
+  },
+  meat: {
+    en: "Meat",
+    ar: "لحوم"
+  },
+  dairy: {
+    en: "Dairy",
+    ar: "ألبان"
+  },
+  grains: {
+    en: "Grains",
+    ar: "حبوب"
+  },
+  spices: {
+    en: "Spices",
+    ar: "بهارات"
+  },
+  beverages: {
+    en: "Beverages",
+    ar: "مشروبات"
+  },
+  other: {
+    en: "Other",
+    ar: "أخرى"
+  },
+
+  // Sync Features
+  sync: {
+    en: "Sync",
+    ar: "مزامنة"
+  },
+  syncData: {
+    en: "Sync Data",
+    ar: "مزامنة البيانات"
+  },
+  lastSynced: {
+    en: "Last Synced",
+    ar: "آخر مزامنة"
+  },
+  syncSuccessful: {
+    en: "Data synced successfully",
+    ar: "تم مزامنة البيانات بنجاح"
+  },
+  syncFailed: {
+    en: "Sync failed",
+    ar: "فشلت المزامنة"
+  },
+  autoSync: {
+    en: "Auto Sync",
+    ar: "مزامنة تلقائية"
+  },
+  syncInProgress: {
+    en: "Syncing...",
+    ar: "جارٍ المزامنة..."
+  },
+
+  // Additional translations for shopping and pantry
+  success: {
+    en: "Success",
+    ar: "نجح"
+  },
+  itemAdded: {
+    en: "Item added successfully",
+    ar: "تم إضافة العنصر بنجاح"
+  },
+  failedToAddItem: {
+    en: "Failed to add item",
+    ar: "فشل في إضافة العنصر"
+  },
+  itemDeleted: {
+    en: "Item deleted successfully",
+    ar: "تم حذف العنصر بنجاح"
+  },
+  completedItemsCleared: {
+    en: "Completed items cleared successfully",
+    ar: "تم مسح العناصر المكتملة بنجاح"
+  },
+  loading: {
+    en: "Loading",
+    ar: "جارٍ التحميل"
+  },
+  pending: {
+    en: "Pending",
+    ar: "معلقة"
+  },
+  completed: {
+    en: "Completed",
+    ar: "مكتملة"
+  },
+  more: {
+    en: "more",
+    ar: "المزيد"
+  },
+
+  // Additional sync translations
+  dataUpdated: {
+    en: "Data has been updated",
+    ar: "تم تحديث البيانات"
+  },
+  tryAgainLater: {
+    en: "Please try again later",
+    ar: "يرجى المحاولة مرة أخرى لاحقاً"
+  },
+  autoSyncEnabled: {
+    en: "Auto sync enabled",
+    ar: "تم تفعيل المزامنة التلقائية"
+  },
+  autoSyncDisabled: {
+    en: "Auto sync disabled",
+    ar: "تم إيقاف المزامنة التلقائية"
+  },
+  dataWillSyncAutomatically: {
+    en: "Data will sync automatically every 5 minutes",
+    ar: "ستتم مزامنة البيانات تلقائياً كل 5 دقائق"
+  },
+  manualSyncOnly: {
+    en: "Manual sync only",
+    ar: "مزامنة يدوية فقط"
+  },
+  justNow: {
+    en: "Just now",
+    ar: "الآن"
+  },
+  minutesAgo: {
+    en: "m ago",
+    ar: "د مضت"
+  },
+  hoursAgo: {
+    en: "h ago",
+    ar: "س مضت"
+  },
+  never: {
+    en: "Never",
+    ar: "أبداً"
+  },
+  disableAutoSync: {
+    en: "Disable auto sync",
+    ar: "إيقاف المزامنة التلقائية"
+  },
+  enableAutoSync: {
+    en: "Enable auto sync",
+    ar: "تفعيل المزامنة التلقائية"
+  },
+  manual: {
+    en: "Manual",
+    ar: "يدوي"
   }
 };
 

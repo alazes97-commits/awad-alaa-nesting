@@ -1,4 +1,4 @@
-import { type Recipe, type InsertRecipe } from "@shared/schema";
+import { type Recipe, type InsertRecipe, type ShoppingListItem, type InsertShoppingListItem, type PantryItem, type InsertPantryItem } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -19,15 +19,37 @@ export interface IStorage {
     category?: string;
     rating?: number;
   }): Promise<Recipe[]>;
+
+  // Shopping List methods
+  getAllShoppingItems(): Promise<ShoppingListItem[]>;
+  getShoppingItemById(id: string): Promise<ShoppingListItem | undefined>;
+  createShoppingItem(item: InsertShoppingListItem): Promise<ShoppingListItem>;
+  updateShoppingItem(id: string, item: Partial<InsertShoppingListItem>): Promise<ShoppingListItem | undefined>;
+  deleteShoppingItem(id: string): Promise<boolean>;
+  toggleShoppingItemCompleted(id: string): Promise<ShoppingListItem | undefined>;
+  clearCompletedShoppingItems(): Promise<boolean>;
+
+  // Pantry methods
+  getAllPantryItems(): Promise<PantryItem[]>;
+  getPantryItemById(id: string): Promise<PantryItem | undefined>;
+  createPantryItem(item: InsertPantryItem): Promise<PantryItem>;
+  updatePantryItem(id: string, item: Partial<InsertPantryItem>): Promise<PantryItem | undefined>;
+  deletePantryItem(id: string): Promise<boolean>;
+  getLowStockItems(): Promise<PantryItem[]>;
+  getExpiringSoonItems(): Promise<PantryItem[]>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, any>;
   private recipes: Map<string, Recipe>;
+  private shoppingItems: Map<string, ShoppingListItem>;
+  private pantryItems: Map<string, PantryItem>;
 
   constructor() {
     this.users = new Map();
     this.recipes = new Map();
+    this.shoppingItems = new Map();
+    this.pantryItems = new Map();
   }
 
   async getUser(id: string): Promise<any | undefined> {
@@ -133,6 +155,140 @@ export class MemStorage implements IStorage {
       if (filters.category && recipe.category !== filters.category) return false;
       if (filters.rating && (recipe.rating || 0) < filters.rating) return false;
       return true;
+    });
+  }
+
+  // Shopping List methods
+  async getAllShoppingItems(): Promise<ShoppingListItem[]> {
+    return Array.from(this.shoppingItems.values()).sort(
+      (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getShoppingItemById(id: string): Promise<ShoppingListItem | undefined> {
+    return this.shoppingItems.get(id);
+  }
+
+  async createShoppingItem(insertItem: InsertShoppingListItem): Promise<ShoppingListItem> {
+    const id = randomUUID();
+    const now = new Date();
+    const item: ShoppingListItem = {
+      ...insertItem,
+      id,
+      unit: insertItem.unit ?? null,
+      category: insertItem.category ?? null,
+      notes: insertItem.notes ?? null,
+      isCompleted: insertItem.isCompleted ?? false,
+      recipeId: insertItem.recipeId ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.shoppingItems.set(id, item);
+    return item;
+  }
+
+  async updateShoppingItem(id: string, updateData: Partial<InsertShoppingListItem>): Promise<ShoppingListItem | undefined> {
+    const existingItem = this.shoppingItems.get(id);
+    if (!existingItem) return undefined;
+
+    const updatedItem: ShoppingListItem = {
+      ...existingItem,
+      ...updateData,
+      updatedAt: new Date(),
+    };
+    this.shoppingItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deleteShoppingItem(id: string): Promise<boolean> {
+    return this.shoppingItems.delete(id);
+  }
+
+  async toggleShoppingItemCompleted(id: string): Promise<ShoppingListItem | undefined> {
+    const item = this.shoppingItems.get(id);
+    if (!item) return undefined;
+
+    const updatedItem: ShoppingListItem = {
+      ...item,
+      isCompleted: !item.isCompleted,
+      updatedAt: new Date(),
+    };
+    this.shoppingItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async clearCompletedShoppingItems(): Promise<boolean> {
+    const completed = Array.from(this.shoppingItems.entries())
+      .filter(([_, item]) => item.isCompleted)
+      .map(([id, _]) => id);
+    
+    completed.forEach(id => this.shoppingItems.delete(id));
+    return true;
+  }
+
+  // Pantry methods
+  async getAllPantryItems(): Promise<PantryItem[]> {
+    return Array.from(this.pantryItems.values()).sort(
+      (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getPantryItemById(id: string): Promise<PantryItem | undefined> {
+    return this.pantryItems.get(id);
+  }
+
+  async createPantryItem(insertItem: InsertPantryItem): Promise<PantryItem> {
+    const id = randomUUID();
+    const now = new Date();
+    const item: PantryItem = {
+      ...insertItem,
+      id,
+      unit: insertItem.unit ?? null,
+      category: insertItem.category ?? null,
+      expiryDate: insertItem.expiryDate ?? null,
+      location: insertItem.location ?? null,
+      notes: insertItem.notes ?? null,
+      minimumStock: insertItem.minimumStock ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.pantryItems.set(id, item);
+    return item;
+  }
+
+  async updatePantryItem(id: string, updateData: Partial<InsertPantryItem>): Promise<PantryItem | undefined> {
+    const existingItem = this.pantryItems.get(id);
+    if (!existingItem) return undefined;
+
+    const updatedItem: PantryItem = {
+      ...existingItem,
+      ...updateData,
+      updatedAt: new Date(),
+    };
+    this.pantryItems.set(id, updatedItem);
+    return updatedItem;
+  }
+
+  async deletePantryItem(id: string): Promise<boolean> {
+    return this.pantryItems.delete(id);
+  }
+
+  async getLowStockItems(): Promise<PantryItem[]> {
+    return Array.from(this.pantryItems.values()).filter(item => {
+      if (!item.minimumStock || !item.quantity) return false;
+      const currentQuantity = parseFloat(item.quantity);
+      const minStock = parseFloat(item.minimumStock);
+      return !isNaN(currentQuantity) && !isNaN(minStock) && currentQuantity <= minStock;
+    });
+  }
+
+  async getExpiringSoonItems(): Promise<PantryItem[]> {
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    
+    return Array.from(this.pantryItems.values()).filter(item => {
+      if (!item.expiryDate) return false;
+      return new Date(item.expiryDate) <= sevenDaysFromNow;
     });
   }
 }

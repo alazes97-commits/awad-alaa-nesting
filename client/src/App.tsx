@@ -6,6 +6,8 @@ import { queryClient } from "./lib/queryClient";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { Home } from "./pages/Home";
 import { AddRecipe } from "./pages/AddRecipe";
+import { ShoppingList } from "./pages/ShoppingList";
+import { Pantry } from "./pages/Pantry";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -13,6 +15,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/add" component={AddRecipe} />
+      <Route path="/shopping" component={ShoppingList} />
+      <Route path="/pantry" component={Pantry} />
       <Route component={NotFound} />
     </Switch>
   );

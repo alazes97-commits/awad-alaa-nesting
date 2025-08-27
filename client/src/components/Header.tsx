@@ -1,7 +1,8 @@
 import { Link } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageToggle } from './LanguageToggle';
-import { Utensils, User, Menu } from 'lucide-react';
+import { SyncStatus } from './SyncStatus';
+import { Utensils, User, Menu, ShoppingCart, Package } from 'lucide-react';
 
 export function Header() {
   const { t } = useLanguage();
@@ -30,16 +31,19 @@ export function Header() {
             <Link href="/add" className="text-foreground hover:text-primary transition-colors" data-testid="nav-add-recipe">
               {t('addRecipe')}
             </Link>
-            <a href="#" className="text-foreground hover:text-primary transition-colors" data-testid="nav-categories">
-              {t('categories')}
-            </a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors" data-testid="nav-favorites">
-              {t('myFavorites')}
-            </a>
+            <Link href="/shopping" className="text-foreground hover:text-primary transition-colors flex items-center gap-1" data-testid="nav-shopping-list">
+              <ShoppingCart className="h-4 w-4" />
+              {t('shoppingList')}
+            </Link>
+            <Link href="/pantry" className="text-foreground hover:text-primary transition-colors flex items-center gap-1" data-testid="nav-pantry">
+              <Package className="h-4 w-4" />
+              {t('pantry')}
+            </Link>
           </nav>
 
-          {/* Language Toggle and User Menu */}
+          {/* Sync, Language Toggle and User Menu */}
           <div className="flex items-center space-x-4 rtl:space-x-reverse">
+            <SyncStatus />
             <LanguageToggle />
 
             {/* User Profile */}

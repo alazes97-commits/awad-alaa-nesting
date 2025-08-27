@@ -36,3 +36,52 @@ export const insertRecipeSchema = createInsertSchema(recipes).omit({
 
 export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
 export type Recipe = typeof recipes.$inferSelect;
+
+// Shopping List Schema
+export const shoppingList = pgTable("shopping_list", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  itemNameEn: text("item_name_en").notNull(),
+  itemNameAr: text("item_name_ar").notNull(),
+  quantity: text("quantity").notNull(),
+  unit: text("unit"), // 'kg', 'gram', 'cup', 'piece', etc
+  category: text("category"), // 'vegetables', 'meat', 'dairy', etc
+  notes: text("notes"),
+  isCompleted: boolean("is_completed").default(false),
+  recipeId: varchar("recipe_id"), // optional reference to recipe
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertShoppingListSchema = createInsertSchema(shoppingList).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertShoppingListItem = z.infer<typeof insertShoppingListSchema>;
+export type ShoppingListItem = typeof shoppingList.$inferSelect;
+
+// Pantry Schema
+export const pantry = pgTable("pantry", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  itemNameEn: text("item_name_en").notNull(),
+  itemNameAr: text("item_name_ar").notNull(),
+  quantity: text("quantity").notNull(),
+  unit: text("unit"), // 'kg', 'gram', 'cup', 'piece', etc
+  category: text("category"), // 'vegetables', 'meat', 'dairy', etc
+  expiryDate: timestamp("expiry_date"),
+  location: text("location"), // 'fridge', 'freezer', 'pantry', etc
+  notes: text("notes"),
+  minimumStock: text("minimum_stock"), // alert when quantity goes below this
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPantrySchema = createInsertSchema(pantry).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPantryItem = z.infer<typeof insertPantrySchema>;
+export type PantryItem = typeof pantry.$inferSelect;
