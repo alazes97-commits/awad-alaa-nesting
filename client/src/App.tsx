@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { useWebSocket } from "./hooks/useWebSocket";
+import { InstallPrompt } from "./components/InstallPrompt";
 import { Home } from "./pages/Home";
 import { AddRecipe } from "./pages/AddRecipe";
 import { ShoppingList } from "./pages/ShoppingList";
@@ -35,8 +36,9 @@ function App() {
       <LanguageProvider>
         <WebSocketProvider>
           <TooltipProvider>
-            <Toaster />
             <Router />
+            <InstallPrompt />
+            <Toaster />
           </TooltipProvider>
         </WebSocketProvider>
       </LanguageProvider>

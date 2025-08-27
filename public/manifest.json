@@ -1,0 +1,51 @@
+{
+  "name": "مطبخ عوض وآلاء - Awad & Alaa Kitchen",
+  "short_name": "مطبخ عوض وآلاء",
+  "description": "تطبيق إدارة الوصفات وقوائم التسوق والمخزن مع المزامنة الفورية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["food", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot2.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "features": [
+    "Real-time sync",
+    "Offline support", 
+    "Multi-language",
+    "Recipe management",
+    "Shopping lists",
+    "Pantry management"
+  ],
+  "prefer_related_applications": false
+}

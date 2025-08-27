@@ -710,6 +710,32 @@ export const translations: Translations = {
   pantryItemRemoved: {
     en: "A pantry item has been removed",
     ar: "تم إزالة عنصر من المخزن"
+  },
+
+  // PWA Installation
+  installApp: {
+    en: "Install App",
+    ar: "تثبيت التطبيق"
+  },
+  installAppDescription: {
+    en: "Install our app for a better experience with offline access and notifications",
+    ar: "ثبت تطبيقنا للحصول على تجربة أفضل مع الوصول بدون إنترنت والإشعارات"
+  },
+  install: {
+    en: "Install",
+    ar: "تثبيت"
+  },
+  later: {
+    en: "Later", 
+    ar: "لاحقاً"
+  },
+  appInstalled: {
+    en: "App Installed",
+    ar: "تم تثبيت التطبيق"
+  },
+  appInstalledSuccessfully: {
+    en: "App has been installed successfully! You can now access it from your home screen.",
+    ar: "تم تثبيت التطبيق بنجاح! يمكنك الآن الوصول إليه من الشاشة الرئيسية."
   }
 };
 
