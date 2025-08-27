@@ -88,10 +88,11 @@ export function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full bg-background flex flex-col overflow-hidden">
       <Header />
       
-      <main className="container mx-auto px-4 py-6">
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 py-6">
         <EmailSync />
         <SearchFilters onSearch={handleSearch} onFilter={handleFilter} />
 
@@ -155,6 +156,7 @@ export function Home() {
             </Button>
           </div>
         )}
+        </div>
       </main>
 
       <RecipeDetailModal

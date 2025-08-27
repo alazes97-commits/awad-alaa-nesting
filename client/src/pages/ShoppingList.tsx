@@ -183,8 +183,9 @@ export function ShoppingList() {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${isRtl ? 'rtl' : 'ltr'}`}>
-      <div className="container mx-auto px-4 py-8">
+    <div className={`h-full bg-gray-50 dark:bg-gray-900 ${isRtl ? 'rtl' : 'ltr'} flex flex-col overflow-hidden`}>
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ShoppingCart className="h-8 w-8 text-blue-600" />
@@ -520,6 +521,7 @@ export function ShoppingList() {
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

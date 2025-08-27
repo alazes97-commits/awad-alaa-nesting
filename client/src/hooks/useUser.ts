@@ -79,18 +79,23 @@ export function useUser() {
   const loadUser = async () => {
     try {
       const savedEmail = localStorage.getItem('userEmail');
+      console.log('🔍 Saved email:', savedEmail);
+      
       if (savedEmail) {
         const response = await apiRequest('GET', `/api/users/email/${savedEmail}`);
         const userData = await response.json();
+        console.log('👤 User data:', userData);
         setUser(userData);
         
         if (userData.familyGroupId) {
           const groupResponse = await apiRequest('GET', `/api/family-groups/${userData.familyGroupId}`);
           const groupData = await groupResponse.json();
+          console.log('👨‍👩‍👧‍👦 Family group data:', groupData);
           setFamilyGroup(groupData);
           
           // Update PWA title dynamically based on family name
           const appName = `${groupData.name} Nesting`;
+          console.log('📱 Setting app name to:', appName);
           document.title = appName;
           
           // Update PWA meta tags
@@ -103,6 +108,7 @@ export function useUser() {
           updateManifestWithFamilyName(appName);
         } else {
           // Reset to default name if no family group
+          console.log('🏠 No family group, using default name');
           document.title = 'Family Nesting';
           const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
           if (appleTitle) {
@@ -110,9 +116,11 @@ export function useUser() {
           }
           updateManifestWithFamilyName('Family Nesting');
         }
+      } else {
+        console.log('❌ No saved email found');
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      console.error('💥 Error loading user:', error);
     } finally {
       setIsLoading(false);
     }

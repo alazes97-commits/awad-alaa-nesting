@@ -32,17 +32,21 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <WebSocketProvider>
-          <TooltipProvider>
-            <Router />
-            <InstallPrompt />
-            <Toaster />
-          </TooltipProvider>
-        </WebSocketProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <div className="h-screen w-screen overflow-hidden">
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <WebSocketProvider>
+            <TooltipProvider>
+              <div className="h-full flex flex-col overflow-hidden">
+                <Router />
+                <InstallPrompt />
+                <Toaster />
+              </div>
+            </TooltipProvider>
+          </WebSocketProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 

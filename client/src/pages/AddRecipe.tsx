@@ -226,11 +226,12 @@ export function AddRecipe() {
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full bg-background flex flex-col overflow-hidden">
       <Header />
       
-      <main className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
           <div className="flex items-center space-x-4 rtl:space-x-reverse mb-6">
             <Button
               variant="outline"
@@ -780,6 +781,7 @@ export function AddRecipe() {
               </Form>
             </CardContent>
           </Card>
+          </div>
         </div>
       </main>
     </div>
