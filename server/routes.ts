@@ -117,20 +117,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all recipes
   app.get("/api/recipes", async (req, res) => {
     try {
-      const { search, country, servingTemperature, category, rating } = req.query;
+      const { search, country, servingTemperature, category, rating, familyGroupId } = req.query;
       
       let recipes;
       if (search) {
-        recipes = await storage.searchRecipes(search as string);
+        recipes = await storage.searchRecipes(search as string, familyGroupId as string);
       } else if (country || servingTemperature || category || rating) {
         recipes = await storage.filterRecipes({
           country: country as string,
           servingTemperature: servingTemperature as string,
           category: category as string,
           rating: rating ? parseInt(rating as string) : undefined,
-        });
+        }, familyGroupId as string);
       } else {
-        recipes = await storage.getAllRecipes();
+        recipes = await storage.getAllRecipes(familyGroupId as string);
       }
       
       res.json(recipes);

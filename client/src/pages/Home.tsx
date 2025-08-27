@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/hooks/useUser';
 import { Header } from '@/components/Header';
 import { SearchFilters } from '@/components/SearchFilters';
 import { RecipeCard } from '@/components/RecipeCard';
@@ -16,6 +17,7 @@ import { apiRequest } from '@/lib/queryClient';
 
 export function Home() {
   const { t } = useLanguage();
+  const { user } = useUser();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -29,7 +31,7 @@ export function Home() {
   }>({});
 
   const { data: recipes, isLoading, refetch } = useQuery({
-    queryKey: ['/api/recipes', searchQuery, filters],
+    queryKey: ['/api/recipes', searchQuery, filters, user?.familyGroupId],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
@@ -37,6 +39,7 @@ export function Home() {
       if (filters.servingTemperature) params.append('servingTemperature', filters.servingTemperature);
       if (filters.category) params.append('category', filters.category);
       if (filters.rating) params.append('rating', filters.rating.toString());
+      if (user?.familyGroupId) params.append('familyGroupId', user.familyGroupId);
       
       const queryString = params.toString();
       const url = `/api/recipes${queryString ? `?${queryString}` : ''}`;

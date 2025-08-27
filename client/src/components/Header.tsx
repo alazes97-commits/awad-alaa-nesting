@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/hooks/useUser';
 import { LanguageToggle } from './LanguageToggle';
 import { SyncStatus } from './SyncStatus';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -9,7 +10,10 @@ import { Utensils, User, Menu, ShoppingCart, Package, X } from 'lucide-react';
 
 export function Header() {
   const { t } = useLanguage();
+  const { familyGroup } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const appName = familyGroup ? `${familyGroup.name} Nesting` : t('appName');
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
@@ -22,7 +26,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">
-                {t('appName')}
+                {appName}
               </h1>
             </div>
           </div>
@@ -66,7 +70,7 @@ export function Header() {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <Utensils className="h-5 w-5" />
-                    {t('appName')}
+                    {appName}
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="mt-6 space-y-4">

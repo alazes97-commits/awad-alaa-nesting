@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/hooks/useUser';
 import { Header } from '@/components/Header';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ export function AddRecipe() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useUser();
   const [searchParams] = useState(new URLSearchParams(window.location.search));
   const editId = searchParams.get('edit');
 
@@ -155,6 +157,11 @@ export function AddRecipe() {
       toolsEn: (data.toolsEn || []).filter(tool => tool?.trim()),
       toolsAr: (data.toolsAr || []).filter(tool => tool?.trim()),
       additionalLinks: (data.additionalLinks || []).filter(link => link.title?.trim() && link.url?.trim()),
+      // Add family group and user info for new recipes
+      ...(user && !editId && {
+        familyGroupId: user.familyGroupId || null,
+        createdBy: user.id
+      })
     };
 
     if (editId) {
