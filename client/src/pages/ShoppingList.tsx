@@ -135,8 +135,14 @@ export function ShoppingList() {
   const completedItems = (shoppingItems as any[]).filter((item: any) => item.isCompleted);
   const pendingItems = (shoppingItems as any[]).filter((item: any) => !item.isCompleted);
   
+  // Debug logs
+  console.log('ShoppingItems:', shoppingItems);
+  console.log('PendingItems:', pendingItems);
+  console.log('ViewMode:', viewMode);
+  
   // Process and group shopping items by category
   const groupedItems = useMemo(() => {
+    console.log('Computing groupedItems, viewMode:', viewMode, 'pendingItems:', pendingItems);
     if (viewMode !== 'grouped') return {};
     
     const processed = pendingItems.map(item => {
@@ -164,6 +170,7 @@ export function ShoppingList() {
       categoryGroups[category].sort((a, b) => a.displayName.localeCompare(b.displayName));
     }
     
+    console.log('Final categoryGroups:', categoryGroups);
     return categoryGroups;
   }, [pendingItems, viewMode, language]);
 
