@@ -1,7 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/hooks/useUser';
 import { useMutation } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +25,12 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   const { user } = useUser();
   const { toast } = useToast();
 
-  if (!recipe) return null;
+  console.log('RecipeDetailModal props:', { recipe, isOpen });
+
+  if (!recipe) {
+    console.log('No recipe provided to modal');
+    return null;
+  }
 
   const addToShoppingListMutation = useMutation({
     mutationFn: async () => {
@@ -89,6 +94,9 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             </DialogTitle>
             <StarRating recipe={recipe} interactive size="md" />
           </div>
+          <DialogDescription className="sr-only">
+            Recipe details for {recipeName}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-6">

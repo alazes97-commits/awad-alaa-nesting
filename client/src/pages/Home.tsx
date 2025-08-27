@@ -53,8 +53,10 @@ export function Home() {
   });
 
   const handleViewRecipe = (recipe: Recipe) => {
+    console.log('handleViewRecipe called with recipe:', recipe);
     setSelectedRecipe(recipe);
     setIsDetailModalOpen(true);
+    console.log('Modal state set to open:', true);
   };
 
   const handleEditRecipe = (recipe: Recipe) => {
