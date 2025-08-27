@@ -667,10 +667,6 @@ export const translations: Translations = {
     en: "A recipe has been modified",
     ar: "تم تعديل وصفة"
   },
-  recipeDeleted: {
-    en: "Recipe deleted",
-    ar: "تم حذف الوصفة"
-  },
   recipeHasBeenRemoved: {
     en: "A recipe has been removed",
     ar: "تم إزالة وصفة"
