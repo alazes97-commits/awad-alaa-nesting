@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Link } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageToggle } from './LanguageToggle';
 import { SyncStatus } from './SyncStatus';
-import { Utensils, User, Menu, ShoppingCart, Package } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Utensils, User, Menu, ShoppingCart, Package, X } from 'lucide-react';
 
 export function Header() {
   const { t } = useLanguage();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
@@ -52,9 +56,59 @@ export function Header() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button className="md:hidden p-2" data-testid="mobile-menu">
-              <Menu className="text-foreground" />
-            </button>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden" data-testid="mobile-menu">
+                  <Menu className="text-foreground" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Utensils className="h-5 w-5" />
+                    {t('appName')}
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="mt-6 space-y-4">
+                  <Link 
+                    href="/" 
+                    className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    data-testid="mobile-nav-recipes"
+                  >
+                    <Utensils className="h-5 w-5" />
+                    {t('recipes')}
+                  </Link>
+                  <Link 
+                    href="/add" 
+                    className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    data-testid="mobile-nav-add-recipe"
+                  >
+                    <User className="h-5 w-5" />
+                    {t('addRecipe')}
+                  </Link>
+                  <Link 
+                    href="/shopping" 
+                    className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    data-testid="mobile-nav-shopping-list"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {t('shoppingList')}
+                  </Link>
+                  <Link 
+                    href="/pantry" 
+                    className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    data-testid="mobile-nav-pantry"
+                  >
+                    <Package className="h-5 w-5" />
+                    {t('pantry')}
+                  </Link>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

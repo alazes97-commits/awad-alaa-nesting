@@ -6,6 +6,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/Header';
+import { ImageUpload } from '@/components/ImageUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -448,6 +449,24 @@ export function AddRecipe() {
                             value={field.value || ''}
                             onChange={field.onChange}
                             data-testid="video-url"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Recipe Images */}
+                  <FormField
+                    control={form.control}
+                    name="images"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <ImageUpload
+                            images={field.value || []}
+                            onImagesChange={field.onChange}
+                            maxImages={5}
                           />
                         </FormControl>
                         <FormMessage />

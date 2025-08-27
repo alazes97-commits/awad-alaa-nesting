@@ -3,7 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star, Edit, Heart, Share, Globe, Flame, Leaf, Clock, Check } from 'lucide-react';
+import { StarRating } from '@/components/StarRating';
+import { ShareButton } from '@/components/ShareButton';
+import { Edit, Heart, Globe, Flame, Leaf, Clock, Check } from 'lucide-react';
 import { Recipe } from '@shared/schema';
 
 interface RecipeDetailModalProps {
@@ -18,14 +20,6 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
 
   if (!recipe) return null;
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-5 h-5 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-      />
-    ));
-  };
 
   const recipeName = language === 'ar' ? recipe.nameAr : recipe.nameEn;
   const recipeInstructions = language === 'ar' ? recipe.instructionsAr : recipe.instructionsEn;
@@ -45,16 +39,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             <DialogTitle className="text-2xl font-bold" data-testid="recipe-detail-title">
               {recipeName}
             </DialogTitle>
-            <div className="flex items-center space-x-4 rtl:space-x-reverse">
-              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <div className="star-rating flex">
-                  {renderStars(recipe.rating || 0)}
-                </div>
-                <span className="text-lg font-semibold" data-testid="recipe-detail-rating">
-                  {recipe.rating || 0}
-                </span>
-              </div>
-            </div>
+            <StarRating recipe={recipe} interactive size="md" />
           </div>
         </DialogHeader>
 
@@ -184,10 +169,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
                 <Heart className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
                 {t('addToFavorites')}
               </Button>
-              <Button variant="outline" className="w-full" data-testid="share-recipe-button">
-                <Share className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                {t('shareRecipe')}
-              </Button>
+              <ShareButton recipe={recipe} variant="outline" size="default" />
             </div>
           </div>
         </div>

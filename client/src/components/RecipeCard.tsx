@@ -3,7 +3,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Share, Star, Globe, Flame, Leaf } from 'lucide-react';
+import { StarRating } from '@/components/StarRating';
+import { ShareButton } from '@/components/ShareButton';
+import { Heart, Globe, Flame, Leaf } from 'lucide-react';
 import { Recipe } from '@shared/schema';
 
 interface RecipeCardProps {
@@ -17,14 +19,6 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   const { t, language } = useLanguage();
   const [isFavorited, setIsFavorited] = useState(false);
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-      />
-    ));
-  };
 
   const recipeName = language === 'ar' ? recipe.nameAr : recipe.nameEn;
   const recipeDescription = language === 'ar' ? recipe.descriptionAr : recipe.descriptionEn;
@@ -46,14 +40,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           <h3 className="font-semibold text-lg text-foreground line-clamp-1" data-testid={`recipe-title-${recipe.id}`}>
             {recipeName}
           </h3>
-          <div className="flex items-center space-x-1 rtl:space-x-reverse">
-            <span className="text-sm font-medium" data-testid={`recipe-rating-${recipe.id}`}>
-              {recipe.rating || 0}
-            </span>
-            <div className="star-rating flex">
-              {renderStars(recipe.rating || 0)}
-            </div>
-          </div>
+          <StarRating recipe={recipe} size="sm" />
         </div>
         
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
@@ -110,13 +97,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           >
             <Heart className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            data-testid={`share-recipe-${recipe.id}`}
-          >
-            <Share className="w-4 h-4 text-muted-foreground" />
-          </Button>
+          <ShareButton recipe={recipe} />
         </div>
       </CardContent>
     </Card>

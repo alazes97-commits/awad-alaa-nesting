@@ -736,6 +736,88 @@ export const translations: Translations = {
   appInstalledSuccessfully: {
     en: "App has been installed successfully! You can now access it from your home screen.",
     ar: "تم تثبيت التطبيق بنجاح! يمكنك الآن الوصول إليه من الشاشة الرئيسية."
+  },
+
+  // Rating System
+  ratingUpdated: {
+    en: "Rating Updated",
+    ar: "تم تحديث التقييم"
+  },
+  ratingUpdatedSuccessfully: {
+    en: "Recipe rating has been updated successfully",
+    ar: "تم تحديث تقييم الوصفة بنجاح"
+  },
+  failedToUpdateRating: {
+    en: "Failed to update rating. Please try again.",
+    ar: "فشل في تحديث التقييم. يرجى المحاولة مرة أخرى."
+  },
+
+  // Sharing
+  shared: {
+    en: "Shared",
+    ar: "تم المشاركة"
+  },
+  recipeSharedSuccessfully: {
+    en: "Recipe shared successfully",
+    ar: "تم مشاركة الوصفة بنجاح"
+  },
+  copied: {
+    en: "Copied",
+    ar: "تم النسخ"
+  },
+  linkCopiedToClipboard: {
+    en: "Recipe link copied to clipboard",
+    ar: "تم نسخ رابط الوصفة إلى الحافظة"
+  },
+  failedToShare: {
+    en: "Failed to share recipe. Please try again.",
+    ar: "فشل في مشاركة الوصفة. يرجى المحاولة مرة أخرى."
+  },
+  checkOutThisRecipe: {
+    en: "Check out this recipe",
+    ar: "اطلع على هذه الوصفة"
+  },
+  share: {
+    en: "Share",
+    ar: "مشاركة"
+  },
+
+  // Image Upload
+  recipeImagesUpload: {
+    en: "Recipe Images",
+    ar: "صور الوصفة"
+  },
+  images: {
+    en: "images",
+    ar: "صور"
+  },
+  addImage: {
+    en: "Add Image",
+    ar: "إضافة صورة"
+  },
+  maxImagesExceeded: {
+    en: "Maximum number of images exceeded",
+    ar: "تم تجاوز العدد الأقصى للصور"
+  },
+  pleaseSelectImageFiles: {
+    en: "Please select image files only",
+    ar: "يرجى اختيار ملفات الصور فقط"
+  },
+  fileTooLarge: {
+    en: "File size too large. Maximum 5MB per image.",
+    ar: "حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت للصورة الواحدة."
+  },
+  imagesUploadedSuccessfully: {
+    en: "Images uploaded successfully",
+    ar: "تم رفع الصور بنجاح"
+  },
+  failedToUploadImages: {
+    en: "Failed to upload images. Please try again.",
+    ar: "فشل في رفع الصور. يرجى المحاولة مرة أخرى."
+  },
+  imageUploadInfo: {
+    en: "Upload up to 5 images. Supported formats: JPG, PNG, GIF. Max 5MB per image.",
+    ar: "ارفع حتى 5 صور. الصيغ المدعومة: JPG, PNG, GIF. حد أقصى 5 ميجابايت للصورة."
   }
 };
 
