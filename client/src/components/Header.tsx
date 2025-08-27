@@ -32,8 +32,8 @@ export function Header() {
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
+          {/* Navigation - Hide on smaller screens to make room for mobile menu */}
+          <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse">
             <Link href="/" className="text-foreground hover:text-primary transition-colors" data-testid="nav-recipes">
               {t('recipes')}
             </Link>
@@ -60,10 +60,10 @@ export function Header() {
               <User className="text-accent-foreground text-sm" />
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - Always visible */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" data-testid="mobile-menu">
+                <Button variant="ghost" size="icon" className="lg:hidden" data-testid="mobile-menu">
                   <Menu className="text-foreground" />
                 </Button>
               </SheetTrigger>
