@@ -232,7 +232,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Shopping List Routes
   app.get("/api/shopping", async (req, res) => {
     try {
-      const items = await storage.getAllShoppingItems();
+      // Get user info from query params (sent by frontend)
+      const familyGroupId = req.query.familyGroupId as string;
+      const items = await storage.getAllShoppingItems(familyGroupId);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch shopping list" });
@@ -307,7 +309,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/shopping/completed", async (req, res) => {
     try {
-      await storage.clearCompletedShoppingItems();
+      const familyGroupId = req.query.familyGroupId as string;
+      await storage.clearCompletedShoppingItems(familyGroupId);
       
       // Broadcast the change to all connected clients
       broadcastChange('shopping', 'clear-completed', {});

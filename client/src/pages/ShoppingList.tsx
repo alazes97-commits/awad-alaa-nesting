@@ -50,7 +50,14 @@ export function ShoppingList() {
 
   // Fetch shopping list
   const { data: shoppingItems = [], isLoading } = useQuery({
-    queryKey: ['/api/shopping'],
+    queryKey: ['/api/shopping', user?.familyGroupId],
+    queryFn: () => {
+      const url = user?.familyGroupId 
+        ? `/api/shopping?familyGroupId=${user.familyGroupId}`
+        : '/api/shopping';
+      return fetch(url).then(res => res.json());
+    },
+    enabled: !!user, // Only fetch when user is loaded
   });
 
   // Add item mutation
@@ -60,7 +67,7 @@ export function ShoppingList() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
       toast({
         title: t('success'),
         description: t('itemAdded'),
@@ -84,7 +91,7 @@ export function ShoppingList() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
     },
   });
 
@@ -95,7 +102,7 @@ export function ShoppingList() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
       toast({
         title: t('success'),
         description: t('itemDeleted'),
@@ -106,11 +113,14 @@ export function ShoppingList() {
   // Clear completed mutation
   const clearCompletedMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('DELETE', '/api/shopping/completed');
+      const url = user?.familyGroupId 
+        ? `/api/shopping/completed?familyGroupId=${user.familyGroupId}`
+        : '/api/shopping/completed';
+      const response = await apiRequest('DELETE', url);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
       toast({
         title: t('success'),
         description: t('completedItemsCleared'),

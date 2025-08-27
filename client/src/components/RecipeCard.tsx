@@ -48,7 +48,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
       await Promise.all(promises);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
       toast({
         title: t('success'),
         description: t('ingredientsAddedToShoppingList'),

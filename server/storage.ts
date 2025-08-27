@@ -55,6 +55,10 @@ export interface IStorage {
   createPantryItem(item: InsertPantryItem): Promise<PantryItem>;
   updatePantryItem(id: string, item: Partial<InsertPantryItem>): Promise<PantryItem | undefined>;
   deletePantryItem(id: string): Promise<boolean>;
+  
+  // Additional shopping list operations
+  toggleShoppingItemCompleted(id: string): Promise<ShoppingListItem | undefined>;
+  clearCompletedShoppingItems(familyGroupId?: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -245,10 +249,18 @@ export class DatabaseStorage implements IStorage {
     return updatedItem;
   }
 
-  async clearCompletedShoppingItems(): Promise<boolean> {
+  async clearCompletedShoppingItems(familyGroupId?: string): Promise<boolean> {
+    let condition = eq(shoppingList.isCompleted, true);
+    
+    if (familyGroupId) {
+      condition = and(condition, eq(shoppingList.familyGroupId, familyGroupId));
+    } else {
+      condition = and(condition, eq(shoppingList.familyGroupId, sql`NULL`));
+    }
+    
     const result = await db
       .delete(shoppingList)
-      .where(eq(shoppingList.isCompleted, true));
+      .where(condition);
     return (result.rowCount || 0) > 0;
   }
 
