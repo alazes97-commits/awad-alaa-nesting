@@ -222,8 +222,14 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           or(
-            sql`LOWER(${shoppingList.itemNameEn}) = LOWER(${itemData.itemNameEn})`,
-            sql`LOWER(${shoppingList.itemNameAr}) = LOWER(${itemData.itemNameAr})`
+            and(
+              sql`LOWER(TRIM(${shoppingList.itemNameEn})) = LOWER(TRIM(${itemData.itemNameEn}))`,
+              sql`LENGTH(TRIM(${itemData.itemNameEn})) > 0`
+            ),
+            and(
+              sql`LOWER(TRIM(${shoppingList.itemNameAr})) = LOWER(TRIM(${itemData.itemNameAr}))`,
+              sql`LENGTH(TRIM(${itemData.itemNameAr || ''})) > 0`
+            )
           ),
           eq(shoppingList.familyGroupId, itemData.familyGroupId || sql`NULL`),
           eq(shoppingList.isCompleted, false)
@@ -245,6 +251,15 @@ export class DatabaseStorage implements IStorage {
       if (this.canMergeUnits(existingQty.unit, newQty.unit)) {
         const merged = this.convertAndMergeUnits(existingQty.amount, existingQty.unit, newQty.amount, newQty.unit);
         combinedQuantity = `${merged.amount} ${merged.unit}`;
+        
+        // Clean up notes - only keep the recipe sources, remove the old additions
+        const recipeNotes = existingItem.notes?.split(',').filter(note => 
+          note.trim().startsWith('From recipe:')
+        ).join(', ') || '';
+        
+        combinedNotes = itemData.notes ? 
+          (recipeNotes ? `${recipeNotes}, ${itemData.notes}` : itemData.notes) : 
+          recipeNotes;
       } else {
         combinedQuantity = existingItem.quantity;
         const newQuantityNote = `+ ${itemData.quantity}`;
@@ -252,11 +267,16 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Update existing item with combined quantity and notes
+      const merged = this.canMergeUnits(existingQty.unit, newQty.unit) ? 
+        this.convertAndMergeUnits(existingQty.amount, existingQty.unit, newQty.amount, newQty.unit) : 
+        { unit: existingItem.unit };
+        
       const [updatedItem] = await db
         .update(shoppingList)
         .set({
           quantity: combinedQuantity,
-          notes: itemData.notes ? `${combinedNotes}, ${itemData.notes}` : combinedNotes,
+          unit: merged.unit,
+          notes: combinedNotes,
           updatedAt: new Date()
         })
         .where(eq(shoppingList.id, existingItem.id))
@@ -311,45 +331,93 @@ export class DatabaseStorage implements IStorage {
   }
 
   private canMergeUnits(unit1: string, unit2: string): boolean {
-    // Define unit groups that can be merged together
-    const mergeGroups = [
-      ['gram', 'kg'],
-      ['جرام', 'كيلو', 'كيلوجرام'],
-      ['ml', 'liter'],
-      ['مل', 'لتر'],
-      ['cup'],
-      ['كوب'],
-      ['piece'],
-      ['قطعة', 'حبة']
-    ];
+    // Units that can be converted to grams (dry ingredients)
+    const dryUnits = ['gram', 'kg', 'كيلو', 'كيلوجرام', 'cup', 'كوب', 'tablespoon', 'ملعقة كبيرة', 'teaspoon', 'ملعقة صغيرة'];
     
-    for (const group of mergeGroups) {
-      if (group.includes(unit1) && group.includes(unit2)) {
-        return true;
-      }
-    }
+    // Units that can be converted to ml (liquids)
+    const liquidUnits = ['ml', 'مل', 'liter', 'لتر', 'cup', 'كوب', 'tablespoon', 'ملعقة كبيرة', 'teaspoon', 'ملعقة صغيرة'];
     
-    return unit1 === unit2;
+    // Counting units
+    const countUnits = ['piece', 'pieces', 'قطعة', 'قطع', 'حبة', 'حبات'];
+    
+    // Check if both units are in the same category
+    const bothDry = dryUnits.includes(unit1) && dryUnits.includes(unit2);
+    const bothLiquid = liquidUnits.includes(unit1) && liquidUnits.includes(unit2);
+    const bothCount = countUnits.includes(unit1) && countUnits.includes(unit2);
+    
+    return bothDry || bothLiquid || bothCount || unit1 === unit2;
+  }
+
+  private convertToGrams(amount: number, unit: string): number | null {
+    // Convert various units to grams for dry ingredients
+    const conversions: Record<string, number> = {
+      'gram': 1,
+      'kg': 1000,
+      'كيلو': 1000,
+      'كيلوجرام': 1000,
+      'cup': 120, // Average for flour/sugar
+      'كوب': 120, // Average for flour/sugar  
+      'tablespoon': 15,
+      'ملعقة كبيرة': 15,
+      'teaspoon': 5,
+      'ملعقة صغيرة': 5
+    };
+    
+    return conversions[unit] ? amount * conversions[unit] : null;
+  }
+
+  private convertToMilliliters(amount: number, unit: string): number | null {
+    // Convert various units to ml for liquids
+    const conversions: Record<string, number> = {
+      'ml': 1,
+      'مل': 1,
+      'liter': 1000,
+      'لتر': 1000,
+      'cup': 240, // Standard cup for liquids
+      'كوب': 240,
+      'tablespoon': 15,
+      'ملعقة كبيرة': 15,
+      'teaspoon': 5,
+      'ملعقة صغيرة': 5
+    };
+    
+    return conversions[unit] ? amount * conversions[unit] : null;
   }
 
   private convertAndMergeUnits(amount1: number, unit1: string, amount2: number, unit2: string): { amount: number; unit: string } {
-    // Convert to base units and merge
-    if (unit1 === 'kg' && unit2 === 'gram') {
-      return { amount: amount1 + (amount2 / 1000), unit: 'kg' };
+    // Try converting to grams first (for dry ingredients)
+    const grams1 = this.convertToGrams(amount1, unit1);
+    const grams2 = this.convertToGrams(amount2, unit2);
+    
+    if (grams1 !== null && grams2 !== null) {
+      const totalGrams = grams1 + grams2;
+      
+      // Convert back to kg if amount is large
+      if (totalGrams >= 1000) {
+        return { amount: Math.round((totalGrams / 1000) * 100) / 100, unit: 'kg' };
+      }
+      
+      return { amount: Math.round(totalGrams * 100) / 100, unit: 'gram' };
     }
-    if (unit1 === 'gram' && unit2 === 'kg') {
-      return { amount: (amount1 / 1000) + amount2, unit: 'kg' };
-    }
-    if (unit1 === 'liter' && unit2 === 'ml') {
-      return { amount: amount1 + (amount2 / 1000), unit: 'liter' };
-    }
-    if (unit1 === 'ml' && unit2 === 'liter') {
-      return { amount: (amount1 / 1000) + amount2, unit: 'liter' };
+    
+    // Try converting to milliliters (for liquids)
+    const ml1 = this.convertToMilliliters(amount1, unit1);
+    const ml2 = this.convertToMilliliters(amount2, unit2);
+    
+    if (ml1 !== null && ml2 !== null) {
+      const totalMl = ml1 + ml2;
+      
+      // Convert back to liter if amount is large
+      if (totalMl >= 1000) {
+        return { amount: Math.round((totalMl / 1000) * 100) / 100, unit: 'liter' };
+      }
+      
+      return { amount: Math.round(totalMl * 100) / 100, unit: 'ml' };
     }
     
     // Same units - just add
     if (unit1 === unit2) {
-      return { amount: amount1 + amount2, unit: unit1 };
+      return { amount: Math.round((amount1 + amount2) * 100) / 100, unit: unit1 };
     }
     
     // Can't merge - return original
