@@ -15,6 +15,58 @@ interface FamilyGroup {
   inviteCode: string;
 }
 
+// Function to update manifest dynamically
+function updateManifestWithFamilyName(appName: string) {
+  // Create a new manifest object
+  const manifest = {
+    "name": appName,
+    "short_name": appName,
+    "description": "Family recipe management app with real-time sync and shared shopping lists",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#2563eb",
+    "orientation": "portrait",
+    "scope": "/",
+    "lang": "ar",
+    "dir": "rtl",
+    "categories": ["food", "lifestyle", "productivity"],
+    "icons": [
+      {
+        "src": "/icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/icon-512.png", 
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ],
+    "features": [
+      "Real-time sync",
+      "Offline support", 
+      "Multi-language",
+      "Recipe management",
+      "Shopping lists",
+      "Pantry management"
+    ],
+    "prefer_related_applications": false
+  };
+  
+  // Convert to blob and create URL
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  
+  // Update manifest link
+  let manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement;
+  if (manifestLink) {
+    manifestLink.href = manifestURL;
+  }
+}
+
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
   const [familyGroup, setFamilyGroup] = useState<FamilyGroup | null>(null);
@@ -36,6 +88,27 @@ export function useUser() {
           const groupResponse = await apiRequest('GET', `/api/family-groups/${userData.familyGroupId}`);
           const groupData = await groupResponse.json();
           setFamilyGroup(groupData);
+          
+          // Update PWA title dynamically based on family name
+          const appName = `${groupData.name} Nesting`;
+          document.title = appName;
+          
+          // Update PWA meta tags
+          const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          if (appleTitle) {
+            appleTitle.setAttribute('content', appName);
+          }
+          
+          // Update manifest link to use dynamic manifest
+          updateManifestWithFamilyName(appName);
+        } else {
+          // Reset to default name if no family group
+          document.title = 'Family Nesting';
+          const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          if (appleTitle) {
+            appleTitle.setAttribute('content', 'Family Nesting');
+          }
+          updateManifestWithFamilyName('Family Nesting');
         }
       }
     } catch (error) {
