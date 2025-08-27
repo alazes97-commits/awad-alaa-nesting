@@ -17,34 +17,35 @@ import { Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { insertRecipeSchema } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
-const formSchema = insertRecipeSchema.extend({
-  ingredientsEn: z.array(z.object({
-    name: z.string().optional(),
-    amount: z.string().optional(),
-  })).optional().default([]),
-  ingredientsAr: z.array(z.object({
-    name: z.string().optional(),
-    amount: z.string().optional(),
-  })).optional().default([]),
-  toolsEn: z.array(z.string()).optional().default([]),
-  toolsAr: z.array(z.string()).optional().default([]),
-  additionalLinks: z.array(z.object({
-    title: z.string().optional(),
-    url: z.string().url().optional(),
-  })).optional().default([]),
-  descriptionEn: z.string().optional(),
-  descriptionAr: z.string().optional(),
-  calories: z.number().optional(),
-  prepTime: z.number().optional(),
+const formSchema = z.object({
+  nameEn: z.string().optional().default(''),
+  nameAr: z.string().optional().default(''),
+  descriptionEn: z.string().optional().default(''),
+  descriptionAr: z.string().optional().default(''),
+  country: z.string().optional().default(''),
+  servingTemperature: z.string().optional().default(''),
+  category: z.string().optional().default(''),
+  calories: z.number().optional().default(0),
+  prepTime: z.number().optional().default(0),
   images: z.array(z.string()).optional().default([]),
-  videoUrl: z.string().optional(),
+  videoUrl: z.string().optional().default(''),
+  instructionsEn: z.string().optional().default(''),
+  instructionsAr: z.string().optional().default(''),
+  ingredientsEn: z.array(z.object({
+    name: z.string().optional().default(''),
+    amount: z.string().optional().default(''),
+  })).optional().default([{ name: '', amount: '' }]),
+  ingredientsAr: z.array(z.object({
+    name: z.string().optional().default(''),
+    amount: z.string().optional().default(''),
+  })).optional().default([{ name: '', amount: '' }]),
+  toolsEn: z.array(z.string()).optional().default(['']) ,
+  toolsAr: z.array(z.string()).optional().default(['']) ,
+  additionalLinks: z.array(z.object({
+    title: z.string().optional().default(''),
+    url: z.string().optional().default(''),
+  })).optional().default([]),
   rating: z.number().min(0).max(5).optional().default(0),
-}).refine((data) => {
-  // Only require basic info: names, country, temperature, category, and instructions
-  return data.nameEn && data.nameAr && data.country && data.servingTemperature && 
-         data.category && data.instructionsEn && data.instructionsAr;
-}, {
-  message: "اسم الوصفة والبلد ودرجة الحرارة والفئة وطريقة التحضير مطلوبة",
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -66,8 +67,8 @@ export function AddRecipe() {
       country: '',
       servingTemperature: '',
       category: '',
-      calories: 0,
-      prepTime: 0,
+      calories: undefined,
+      prepTime: undefined,
       images: [],
       videoUrl: '',
       ingredientsEn: [{ name: '', amount: '' }],
@@ -245,7 +246,7 @@ export function AddRecipe() {
                       name="nameEn"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('recipeNameEn')} *</FormLabel>
+                          <FormLabel>{t('recipeNameEn')}</FormLabel>
                           <FormControl>
                             <Input
                               placeholder={t('enterRecipeNameEn')}
@@ -263,7 +264,7 @@ export function AddRecipe() {
                       name="nameAr"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('recipeNameAr')} *</FormLabel>
+                          <FormLabel>{t('recipeNameAr')}</FormLabel>
                           <FormControl>
                             <Input
                               placeholder={t('enterRecipeNameAr')}
@@ -282,7 +283,7 @@ export function AddRecipe() {
                       name="country"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('countryOfOrigin')} *</FormLabel>
+                          <FormLabel>{t('countryOfOrigin')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="country-select">
@@ -307,7 +308,7 @@ export function AddRecipe() {
                       name="servingTemperature"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('servingTemperature')} *</FormLabel>
+                          <FormLabel>{t('servingTemperature')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="temperature-select">
@@ -330,7 +331,7 @@ export function AddRecipe() {
                       name="category"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category *</FormLabel>
+                          <FormLabel>Category</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="category-select">
@@ -355,13 +356,13 @@ export function AddRecipe() {
                       name="calories"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('calories')} (اختياري)</FormLabel>
+                          <FormLabel>{t('calories')}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               min="0"
                               value={field.value || ''}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                               data-testid="calories-input"
                             />
                           </FormControl>
@@ -375,13 +376,13 @@ export function AddRecipe() {
                       name="prepTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('prepTime')} (اختياري)</FormLabel>
+                          <FormLabel>{t('prepTime')}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
                               min="0"
                               value={field.value || ''}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                               data-testid="prep-time-input"
                             />
                           </FormControl>
@@ -398,7 +399,7 @@ export function AddRecipe() {
                       name="descriptionEn"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description (English) - اختياري</FormLabel>
+                          <FormLabel>Description (English)</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="Brief description in English..."
@@ -417,7 +418,7 @@ export function AddRecipe() {
                       name="descriptionAr"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>الوصف (العربية) - اختياري</FormLabel>
+                          <FormLabel>الوصف (العربية)</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="وصف مختصر بالعربية..."
@@ -439,7 +440,7 @@ export function AddRecipe() {
                     name="videoUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('videoTutorial')} (اختياري)</FormLabel>
+                        <FormLabel>{t('videoTutorial')}</FormLabel>
                         <FormControl>
                           <Input
                             type="url"
@@ -456,7 +457,7 @@ export function AddRecipe() {
 
                   {/* Ingredients */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('ingredients')} (اختياري)</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('ingredients')}</h3>
                     {form.watch('ingredientsEn').map((_, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                         <FormField
@@ -562,7 +563,7 @@ export function AddRecipe() {
                       name="instructionsEn"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('instructionsEn')} *</FormLabel>
+                          <FormLabel>{t('instructionsEn')}</FormLabel>
                           <FormControl>
                             <Textarea
                               rows={8}
@@ -581,7 +582,7 @@ export function AddRecipe() {
                       name="instructionsAr"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('instructionsAr')} *</FormLabel>
+                          <FormLabel>{t('instructionsAr')}</FormLabel>
                           <FormControl>
                             <Textarea
                               rows={8}
@@ -599,7 +600,7 @@ export function AddRecipe() {
 
                   {/* Tools */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('requiredTools')} (اختياري)</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('requiredTools')}</h3>
                     {form.watch('toolsEn').map((_, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormField
@@ -665,7 +666,7 @@ export function AddRecipe() {
 
                   {/* Additional Links */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('additionalLinks')} (اختياري)</h3>
+                    <h3 className="text-lg font-semibold mb-4">{t('additionalLinks')}</h3>
                     {form.watch('additionalLinks').map((_, index) => (
                       <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormField
