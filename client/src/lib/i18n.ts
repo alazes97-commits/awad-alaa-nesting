@@ -317,10 +317,7 @@ export const translations: Translations = {
     en: "Shopping List",
     ar: "قائمة التسوق"
   },
-  addToShoppingList: {
-    en: "Add to Shopping List",
-    ar: "إضافة لقائمة التسوق"
-  },
+
   shoppingListEmpty: {
     en: "Your shopping list is empty",
     ar: "قائمة التسوق فارغة"
@@ -852,6 +849,43 @@ export const translations: Translations = {
   familySync: {
     en: "Family Sync",
     ar: "مزامنة العائلة"
+  },
+
+  addToShoppingList: {
+    en: "Add to Shopping List",
+    ar: "إضافة لقائمة التسوق"
+  },
+  ingredientsAddedToShoppingList: {
+    en: "Ingredients added to shopping list",
+    ar: "تمت إضافة المكونات لقائمة التسوق"
+  },
+  failedToAddToShoppingList: {
+    en: "Failed to add to shopping list",
+    ar: "فشل في إضافة لقائمة التسوق"
+  },
+  vegetables: {
+    en: "Vegetables",
+    ar: "خضار"
+  },
+  fruits: {
+    en: "Fruits",
+    ar: "فواكه"
+  },
+  grains: {
+    en: "Grains",
+    ar: "حبوب"
+  },
+  beverages: {
+    en: "Beverages",
+    ar: "مشروبات"
+  },
+  listView: {
+    en: "List View",
+    ar: "عرض قائمة"
+  },
+  groupedView: {
+    en: "Grouped View",
+    ar: "عرض مجمع"
   },
   notConnected: {
     en: "Not Connected",

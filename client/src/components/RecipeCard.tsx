@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/hooks/useUser';
+import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
-import { Heart, Globe, Flame, Leaf } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Heart, Globe, Flame, Leaf, ShoppingCart } from 'lucide-react';
 import { Recipe } from '@shared/schema';
+import { processIngredients } from '@/utils/ingredientUtils';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -17,7 +22,50 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps) {
   const { t, language } = useLanguage();
+  const { user } = useUser();
+  const { toast } = useToast();
   const [isFavorited, setIsFavorited] = useState(false);
+
+  const addToShoppingListMutation = useMutation({
+    mutationFn: async () => {
+      const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
+      const processedIngredients = processIngredients(ingredients || []);
+      
+      const promises = processedIngredients.map(ingredient => 
+        apiRequest('POST', '/api/shopping', {
+          itemNameEn: language === 'en' ? ingredient.name : '',
+          itemNameAr: language === 'ar' ? ingredient.name : '',
+          quantity: `${ingredient.amount} ${ingredient.unit}`,
+          unit: ingredient.unit,
+          category: ingredient.category,
+          notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
+          recipeId: recipe.id,
+          familyGroupId: user?.familyGroupId || null,
+          createdBy: user?.id || null
+        })
+      );
+      
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      toast({
+        title: t('success'),
+        description: t('ingredientsAddedToShoppingList'),
+      });
+    },
+    onError: () => {
+      toast({
+        title: t('errorOccurred'),
+        description: t('failedToAddToShoppingList'),
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const handleAddToShoppingList = () => {
+    addToShoppingListMutation.mutate();
+  };
 
 
   const recipeName = language === 'ar' ? recipe.nameAr : recipe.nameEn;
@@ -88,6 +136,16 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
             data-testid={`view-recipe-${recipe.id}`}
           >
             {t('viewRecipe')}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleAddToShoppingList}
+            disabled={addToShoppingListMutation.isPending}
+            data-testid={`add-to-shopping-${recipe.id}`}
+            title={t('addToShoppingList')}
+          >
+            <ShoppingCart className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"

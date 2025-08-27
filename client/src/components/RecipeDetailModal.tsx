@@ -1,12 +1,17 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/hooks/useUser';
+import { useMutation } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
-import { Edit, Heart, Globe, Flame, Leaf, Clock, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Edit, Heart, Globe, Flame, Leaf, Clock, Check, ShoppingCart } from 'lucide-react';
 import { Recipe } from '@shared/schema';
+import { processIngredients } from '@/utils/ingredientUtils';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -17,8 +22,51 @@ interface RecipeDetailModalProps {
 
 export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDetailModalProps) {
   const { t, language } = useLanguage();
+  const { user } = useUser();
+  const { toast } = useToast();
 
   if (!recipe) return null;
+
+  const addToShoppingListMutation = useMutation({
+    mutationFn: async () => {
+      const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
+      const processedIngredients = processIngredients(ingredients || []);
+      
+      const promises = processedIngredients.map(ingredient => 
+        apiRequest('POST', '/api/shopping', {
+          itemNameEn: language === 'en' ? ingredient.name : '',
+          itemNameAr: language === 'ar' ? ingredient.name : '',
+          quantity: `${ingredient.amount} ${ingredient.unit}`,
+          unit: ingredient.unit,
+          category: ingredient.category,
+          notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
+          recipeId: recipe.id,
+          familyGroupId: user?.familyGroupId || null,
+          createdBy: user?.id || null
+        })
+      );
+      
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
+      toast({
+        title: t('success'),
+        description: t('ingredientsAddedToShoppingList'),
+      });
+    },
+    onError: () => {
+      toast({
+        title: t('errorOccurred'),
+        description: t('failedToAddToShoppingList'),
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const handleAddToShoppingList = () => {
+    addToShoppingListMutation.mutate();
+  };
 
 
   const recipeName = language === 'ar' ? recipe.nameAr : recipe.nameEn;
@@ -158,6 +206,16 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             {/* Actions */}
             <div className="space-y-3">
               <Button 
+                className="w-full" 
+                onClick={handleAddToShoppingList}
+                disabled={addToShoppingListMutation.isPending}
+                data-testid="add-to-shopping-list-button"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
+                {t('addToShoppingList')}
+              </Button>
+              <Button 
+                variant="outline"
                 className="w-full" 
                 onClick={() => onEdit(recipe)}
                 data-testid="edit-recipe-button"
