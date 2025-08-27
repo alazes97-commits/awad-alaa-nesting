@@ -216,11 +216,144 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createShoppingItem(itemData: InsertShoppingListItem): Promise<ShoppingListItem> {
-    const [item] = await db
-      .insert(shoppingList)
-      .values(itemData)
-      .returning();
-    return item;
+    // Check if similar item already exists (same name and family group)
+    const existingItems = await db.select()
+      .from(shoppingList)
+      .where(
+        and(
+          or(
+            sql`LOWER(${shoppingList.itemNameEn}) = LOWER(${itemData.itemNameEn})`,
+            sql`LOWER(${shoppingList.itemNameAr}) = LOWER(${itemData.itemNameAr})`
+          ),
+          eq(shoppingList.familyGroupId, itemData.familyGroupId || sql`NULL`),
+          eq(shoppingList.isCompleted, false)
+        )
+      );
+
+    if (existingItems.length > 0) {
+      // Merge with existing item
+      const existingItem = existingItems[0];
+      
+      // Parse quantities and combine them
+      const existingQty = this.parseQuantity(existingItem.quantity);
+      const newQty = this.parseQuantity(itemData.quantity);
+      
+      // Try to merge units if compatible
+      let combinedQuantity: string;
+      let combinedNotes = existingItem.notes || '';
+      
+      if (this.canMergeUnits(existingQty.unit, newQty.unit)) {
+        const merged = this.convertAndMergeUnits(existingQty.amount, existingQty.unit, newQty.amount, newQty.unit);
+        combinedQuantity = `${merged.amount} ${merged.unit}`;
+      } else {
+        combinedQuantity = existingItem.quantity;
+        const newQuantityNote = `+ ${itemData.quantity}`;
+        combinedNotes = combinedNotes ? `${combinedNotes}, ${newQuantityNote}` : newQuantityNote;
+      }
+      
+      // Update existing item with combined quantity and notes
+      const [updatedItem] = await db
+        .update(shoppingList)
+        .set({
+          quantity: combinedQuantity,
+          notes: itemData.notes ? `${combinedNotes}, ${itemData.notes}` : combinedNotes,
+          updatedAt: new Date()
+        })
+        .where(eq(shoppingList.id, existingItem.id))
+        .returning();
+      
+      return updatedItem;
+    } else {
+      // Create new item
+      const [item] = await db
+        .insert(shoppingList)
+        .values(itemData)
+        .returning();
+      return item;
+    }
+  }
+
+  private parseQuantity(quantity: string): { amount: number; unit: string } {
+    const match = quantity.match(/^(\d*\.?\d+)\s*(.*)$/);
+    if (!match) {
+      return { amount: 1, unit: 'piece' };
+    }
+    
+    const amount = parseFloat(match[1]) || 1;
+    let unit = match[2]?.trim() || 'piece';
+    
+    // Normalize common units
+    const unitNormalization: Record<string, string> = {
+      'g': 'gram',
+      'grams': 'gram',
+      'جرام': 'gram',
+      'جم': 'gram',
+      'kg': 'kg',
+      'كيلو': 'kg',
+      'كيلوجرام': 'kg',
+      'ml': 'ml',
+      'مل': 'ml',
+      'liter': 'liter',
+      'لتر': 'liter',
+      'l': 'liter',
+      'cup': 'cup',
+      'cups': 'cup',
+      'كوب': 'cup',
+      'piece': 'piece',
+      'pieces': 'piece',
+      'قطعة': 'piece',
+      'حبة': 'piece'
+    };
+    
+    unit = unitNormalization[unit.toLowerCase()] || unit;
+    
+    return { amount, unit };
+  }
+
+  private canMergeUnits(unit1: string, unit2: string): boolean {
+    // Define unit groups that can be merged together
+    const mergeGroups = [
+      ['gram', 'kg'],
+      ['جرام', 'كيلو', 'كيلوجرام'],
+      ['ml', 'liter'],
+      ['مل', 'لتر'],
+      ['cup'],
+      ['كوب'],
+      ['piece'],
+      ['قطعة', 'حبة']
+    ];
+    
+    for (const group of mergeGroups) {
+      if (group.includes(unit1) && group.includes(unit2)) {
+        return true;
+      }
+    }
+    
+    return unit1 === unit2;
+  }
+
+  private convertAndMergeUnits(amount1: number, unit1: string, amount2: number, unit2: string): { amount: number; unit: string } {
+    // Convert to base units and merge
+    if (unit1 === 'kg' && unit2 === 'gram') {
+      return { amount: amount1 + (amount2 / 1000), unit: 'kg' };
+    }
+    if (unit1 === 'gram' && unit2 === 'kg') {
+      return { amount: (amount1 / 1000) + amount2, unit: 'kg' };
+    }
+    if (unit1 === 'liter' && unit2 === 'ml') {
+      return { amount: amount1 + (amount2 / 1000), unit: 'liter' };
+    }
+    if (unit1 === 'ml' && unit2 === 'liter') {
+      return { amount: (amount1 / 1000) + amount2, unit: 'liter' };
+    }
+    
+    // Same units - just add
+    if (unit1 === unit2) {
+      return { amount: amount1 + amount2, unit: unit1 };
+    }
+    
+    // Can't merge - return original
+    return { amount: amount1, unit: unit1 };
   }
 
   async updateShoppingItem(id: string, itemData: Partial<InsertShoppingListItem>): Promise<ShoppingListItem | undefined> {
