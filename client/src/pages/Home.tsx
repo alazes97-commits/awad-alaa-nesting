@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { SearchFilters } from '@/components/SearchFilters';
 import { RecipeCard } from '@/components/RecipeCard';
 import { RecipeDetailModal } from '@/components/RecipeDetailModal';
+import { EmailSync } from '@/components/EmailSync';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -87,6 +88,7 @@ export function Home() {
       <Header />
       
       <main className="container mx-auto px-4 py-6">
+        <EmailSync />
         <SearchFilters onSearch={handleSearch} onFilter={handleFilter} />
 
         {/* Add Recipe Button */}

@@ -1,7 +1,39 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Session storage table (required for auth)
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Users table for email-based sync
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique().notNull(),
+  name: varchar("name"),
+  profileImage: varchar("profile_image"),
+  familyGroupId: varchar("family_group_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Family groups for shared sync
+export const familyGroups = pgTable("family_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  ownerEmail: varchar("owner_email").notNull(),
+  inviteCode: varchar("invite_code").unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const recipes = pgTable("recipes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -24,6 +56,8 @@ export const recipes = pgTable("recipes", {
   additionalLinks: jsonb("additional_links").$type<Array<{title: string, url: string}>>().default([]),
   rating: integer("rating").default(0), // 0-5 stars
   category: text("category").notNull(), // 'breakfast', 'lunch', 'dinner', 'snack', 'dessert', 'drink'
+  familyGroupId: varchar("family_group_id"),
+  createdBy: varchar("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -48,6 +82,8 @@ export const shoppingList = pgTable("shopping_list", {
   notes: text("notes"),
   isCompleted: boolean("is_completed").default(false),
   recipeId: varchar("recipe_id"), // optional reference to recipe
+  familyGroupId: varchar("family_group_id"),
+  createdBy: varchar("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -73,6 +109,8 @@ export const pantry = pgTable("pantry", {
   location: text("location"), // 'fridge', 'freezer', 'pantry', etc
   notes: text("notes"),
   minimumStock: text("minimum_stock"), // alert when quantity goes below this
+  familyGroupId: varchar("family_group_id"),
+  createdBy: varchar("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -85,3 +123,23 @@ export const insertPantrySchema = createInsertSchema(pantry).omit({
 
 export type InsertPantryItem = z.infer<typeof insertPantrySchema>;
 export type PantryItem = typeof pantry.$inferSelect;
+
+// User and Family Group Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
+
+export type FamilyGroup = typeof familyGroups.$inferSelect;
+export type InsertFamilyGroup = typeof familyGroups.$inferInsert;
+
+// User and Family Group Schemas
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFamilyGroupSchema = createInsertSchema(familyGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});

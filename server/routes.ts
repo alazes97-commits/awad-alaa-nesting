@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertRecipeSchema, insertShoppingListSchema, insertPantrySchema } from "@shared/schema";
+import { insertRecipeSchema, insertShoppingListSchema, insertPantrySchema, insertUserSchema, insertFamilyGroupSchema } from "@shared/schema";
 
 // Store connected clients for real-time sync
 const connectedClients = new Set<WebSocket>();
@@ -19,6 +19,101 @@ function broadcastChange(type: string, action: string, data: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // User routes
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.get("/api/users/email/:email", async (req, res) => {
+    try {
+      const user = await storage.getUserByEmail(req.params.email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(validatedData);
+      res.status(201).json(user);
+    } catch (error) {
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid user data", errors: error });
+      }
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Family Group routes
+  app.get("/api/family-groups/:id", async (req, res) => {
+    try {
+      const group = await storage.getFamilyGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: "Family group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch family group" });
+    }
+  });
+
+  app.get("/api/family-groups/invite/:code", async (req, res) => {
+    try {
+      const group = await storage.getFamilyGroupByInviteCode(req.params.code);
+      if (!group) {
+        return res.status(404).json({ message: "Invalid invite code" });
+      }
+      res.json(group);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch family group" });
+    }
+  });
+
+  app.get("/api/family-groups/:id/members", async (req, res) => {
+    try {
+      const members = await storage.getUsersByFamilyGroup(req.params.id);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch family members" });
+    }
+  });
+
+  app.post("/api/family-groups", async (req, res) => {
+    try {
+      const validatedData = insertFamilyGroupSchema.parse(req.body);
+      const group = await storage.createFamilyGroup(validatedData);
+      res.status(201).json(group);
+    } catch (error) {
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid family group data", errors: error });
+      }
+      res.status(500).json({ message: "Failed to create family group" });
+    }
+  });
+
+  app.post("/api/family-groups/:id/join", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      await storage.joinFamilyGroup(userId, req.params.id);
+      res.json({ message: "Successfully joined family group" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to join family group" });
+    }
+  });
+
   // Get all recipes
   app.get("/api/recipes", async (req, res) => {
     try {
@@ -77,6 +172,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Update recipe
   app.put("/api/recipes/:id", async (req, res) => {
+    try {
+      const validatedData = insertRecipeSchema.partial().parse(req.body);
+      const recipe = await storage.updateRecipe(req.params.id, validatedData);
+      if (!recipe) {
+        return res.status(404).json({ message: "Recipe not found" });
+      }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('recipes', 'update', recipe);
+      
+      res.json(recipe);
+    } catch (error) {
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid recipe data", errors: error });
+      }
+      res.status(500).json({ message: "Failed to update recipe" });
+    }
+  });
+
+  // Patch recipe (for partial updates like rating)
+  app.patch("/api/recipes/:id", async (req, res) => {
     try {
       const validatedData = insertRecipeSchema.partial().parse(req.body);
       const recipe = await storage.updateRecipe(req.params.id, validatedData);

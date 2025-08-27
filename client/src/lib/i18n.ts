@@ -818,6 +818,108 @@ export const translations: Translations = {
   imageUploadInfo: {
     en: "Upload up to 5 images. Supported formats: JPG, PNG, GIF. Max 5MB per image.",
     ar: "ارفع حتى 5 صور. الصيغ المدعومة: JPG, PNG, GIF. حد أقصى 5 ميجابايت للصورة."
+  },
+
+  // Email Sync
+  setupEmailSync: {
+    en: "Setup Email Sync",
+    ar: "إعداد المزامنة بالإيميل"
+  },
+  emailSyncDescription: {
+    en: "Connect with your family members to sync recipes, shopping lists, and pantry items across all devices.",
+    ar: "اتصل مع أفراد عائلتك لمزامنة الوصفات وقوائم التسوق والمؤن عبر جميع الأجهزة."
+  },
+  yourEmail: {
+    en: "Your Email",
+    ar: "إيميلك"
+  },
+  yourName: {
+    en: "Your Name",
+    ar: "اسمك"
+  },
+  setupAccount: {
+    en: "Setup Account",
+    ar: "إعداد الحساب"
+  },
+  userCreatedSuccessfully: {
+    en: "Account created successfully",
+    ar: "تم إنشاء الحساب بنجاح"
+  },
+  failedToCreateUser: {
+    en: "Failed to create account",
+    ar: "فشل في إنشاء الحساب"
+  },
+  familySync: {
+    en: "Family Sync",
+    ar: "مزامنة العائلة"
+  },
+  notConnected: {
+    en: "Not Connected",
+    ar: "غير متصل"
+  },
+  members: {
+    en: "members",
+    ar: "أعضاء"
+  },
+  familyMembers: {
+    en: "Family Members",
+    ar: "أفراد العائلة"
+  },
+  setupFamilySync: {
+    en: "Setup Family Sync",
+    ar: "إعداد مزامنة العائلة"
+  },
+  createNewFamily: {
+    en: "Create New Family",
+    ar: "إنشاء عائلة جديدة"
+  },
+  familyGroupName: {
+    en: "Family Group Name",
+    ar: "اسم مجموعة العائلة"
+  },
+  createFamily: {
+    en: "Create Family",
+    ar: "إنشاء العائلة"
+  },
+  familyGroupCreated: {
+    en: "Family group created successfully",
+    ar: "تم إنشاء مجموعة العائلة بنجاح"
+  },
+  failedToCreateFamilyGroup: {
+    en: "Failed to create family group",
+    ar: "فشل في إنشاء مجموعة العائلة"
+  },
+  or: {
+    en: "OR",
+    ar: "أو"
+  },
+  joinExistingFamily: {
+    en: "Join Existing Family",
+    ar: "انضم لعائلة موجودة"
+  },
+  inviteCode: {
+    en: "Invite Code",
+    ar: "رمز الدعوة"
+  },
+  joinFamily: {
+    en: "Join Family",
+    ar: "انضم للعائلة"
+  },
+  joinedFamilyGroup: {
+    en: "Successfully joined family group",
+    ar: "تم الانضمام لمجموعة العائلة بنجاح"
+  },
+  failedToJoinFamilyGroup: {
+    en: "Failed to join family group",
+    ar: "فشل في الانضمام لمجموعة العائلة"
+  },
+  inviteCodeCopied: {
+    en: "Invite code copied to clipboard",
+    ar: "تم نسخ رمز الدعوة للحافظة"
+  },
+  pleaseEnterEmailAndName: {
+    en: "Please enter both email and name",
+    ar: "يرجى إدخال الإيميل والاسم"
   }
 };
 
