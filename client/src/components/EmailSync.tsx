@@ -39,7 +39,24 @@ export function EmailSync() {
 
   useEffect(() => {
     checkUserStatus();
+    // Create demo family for testing if no user exists
+    createDemoFamily();
   }, []);
+  
+  const createDemoFamily = () => {
+    // Only create demo if no user exists
+    if (!localStorage.getItem('userEmail')) {
+      setTimeout(() => {
+        setFamilyGroup({
+          id: 'demo-family',
+          name: 'عائلة النمر',
+          ownerEmail: 'demo@example.com',
+          inviteCode: 'DEMO123',
+          memberCount: 3
+        });
+      }, 1000);
+    }
+  };
 
   const checkUserStatus = async () => {
     try {

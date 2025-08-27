@@ -863,10 +863,6 @@ export const translations: Translations = {
     en: "Failed to add to shopping list",
     ar: "فشل في إضافة لقائمة التسوق"
   },
-  deleteRecipe: {
-    en: "Delete Recipe",
-    ar: "حذف الوصفة"
-  },
   confirmDelete: {
     en: "Are you sure?",
     ar: "هل أنت متأكد؟"
@@ -874,14 +870,6 @@ export const translations: Translations = {
   deleteRecipeConfirmation: {
     en: "This action cannot be undone. This will permanently delete the recipe '{{recipeName}}'.",
     ar: "هذا الإجراء لا يمكن التراجع عنه. سيتم حذف الوصفة '{{recipeName}}' نهائياً."
-  },
-  delete: {
-    en: "Delete",
-    ar: "حذف"
-  },
-  recipeDeleted: {
-    en: "Recipe Deleted",
-    ar: "تم حذف الوصفة"
   },
   recipeDeletedSuccessfully: {
     en: "Recipe has been deleted successfully",

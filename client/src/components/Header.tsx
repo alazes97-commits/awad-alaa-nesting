@@ -13,7 +13,8 @@ export function Header() {
   const { familyGroup } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const appName = familyGroup ? `${familyGroup.name} Nesting` : t('appName');
+  // Show default name if no family group loaded yet
+  const appName = familyGroup ? `${familyGroup.name} Nesting` : "Family Nesting";
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
