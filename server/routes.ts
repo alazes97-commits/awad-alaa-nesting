@@ -1,7 +1,22 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertRecipeSchema, insertShoppingListSchema, insertPantrySchema } from "@shared/schema";
+
+// Store connected clients for real-time sync
+const connectedClients = new Set<WebSocket>();
+
+// Broadcast changes to all connected clients
+function broadcastChange(type: string, action: string, data: any) {
+  const message = JSON.stringify({ type, action, data, timestamp: Date.now() });
+  
+  connectedClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all recipes
@@ -47,6 +62,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertRecipeSchema.parse(req.body);
       const recipe = await storage.createRecipe(validatedData);
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('recipes', 'create', recipe);
+      
       res.status(201).json(recipe);
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
@@ -64,6 +83,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!recipe) {
         return res.status(404).json({ message: "Recipe not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('recipes', 'update', recipe);
+      
       res.json(recipe);
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
@@ -80,6 +103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ message: "Recipe not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('recipes', 'delete', { id: req.params.id });
+      
       res.json({ message: "Recipe deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete recipe" });
@@ -100,6 +127,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertShoppingListSchema.parse(req.body);
       const item = await storage.createShoppingItem(validatedData);
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('shopping', 'create', item);
+      
       res.status(201).json(item);
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
@@ -116,6 +147,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!item) {
         return res.status(404).json({ message: "Shopping item not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('shopping', 'update', item);
+      
       res.json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to update shopping item" });
@@ -128,6 +163,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ message: "Shopping item not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('shopping', 'delete', { id: req.params.id });
+      
       res.json({ message: "Shopping item deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete shopping item" });
@@ -140,6 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!item) {
         return res.status(404).json({ message: "Shopping item not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('shopping', 'toggle', item);
+      
       res.json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to toggle shopping item" });
@@ -149,6 +192,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/shopping/completed", async (req, res) => {
     try {
       await storage.clearCompletedShoppingItems();
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('shopping', 'clear-completed', {});
+      
       res.json({ message: "Completed items cleared successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to clear completed items" });
@@ -187,6 +234,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertPantrySchema.parse(req.body);
       const item = await storage.createPantryItem(validatedData);
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('pantry', 'create', item);
+      
       res.status(201).json(item);
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
@@ -203,6 +254,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!item) {
         return res.status(404).json({ message: "Pantry item not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('pantry', 'update', item);
+      
       res.json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to update pantry item" });
@@ -215,6 +270,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ message: "Pantry item not found" });
       }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('pantry', 'delete', { id: req.params.id });
+      
       res.json({ message: "Pantry item deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete pantry item" });
@@ -222,5 +281,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server for real-time sync
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('New WebSocket client connected');
+    connectedClients.add(ws);
+    
+    // Send welcome message
+    ws.send(JSON.stringify({ 
+      type: 'system', 
+      action: 'connected', 
+      data: { message: 'Connected to real-time sync' },
+      timestamp: Date.now()
+    }));
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      connectedClients.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      connectedClients.delete(ws);
+    });
+  });
+  
   return httpServer;
 }

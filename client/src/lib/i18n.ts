@@ -612,6 +612,108 @@ export const translations: Translations = {
   manual: {
     en: "Manual",
     ar: "يدوي"
+  },
+
+  // Real-time sync translations
+  connectedToRealTimeSync: {
+    en: "Connected to real-time sync",
+    ar: "متصل بالمزامنة الفورية"
+  },
+  realTimeSync: {
+    en: "Real-time",
+    ar: "فوري"
+  },
+  offline: {
+    en: "Offline",
+    ar: "غير متصل"
+  },
+  connected: {
+    en: "Connected",
+    ar: "متصل"
+  },
+  disconnected: {
+    en: "Disconnected",
+    ar: "غير متصل"
+  },
+  reconnecting: {
+    en: "Reconnecting",
+    ar: "جارٍ إعادة الاتصال"
+  },
+  attemptingToReconnect: {
+    en: "Attempting to reconnect to real-time sync",
+    ar: "محاولة إعادة الاتصال بالمزامنة الفورية"
+  },
+  alreadyConnected: {
+    en: "Already connected",
+    ar: "متصل بالفعل"
+  },
+  realTimeSyncActive: {
+    en: "Real-time sync is active",
+    ar: "المزامنة الفورية نشطة"
+  },
+  recipeAdded: {
+    en: "Recipe added",
+    ar: "تمت إضافة وصفة"
+  },
+  newRecipeAvailable: {
+    en: "A new recipe is now available",
+    ar: "وصفة جديدة متاحة الآن"
+  },
+  recipeUpdated: {
+    en: "Recipe updated",
+    ar: "تم تحديث الوصفة"
+  },
+  recipeHasBeenModified: {
+    en: "A recipe has been modified",
+    ar: "تم تعديل وصفة"
+  },
+  recipeDeleted: {
+    en: "Recipe deleted",
+    ar: "تم حذف الوصفة"
+  },
+  recipeHasBeenRemoved: {
+    en: "A recipe has been removed",
+    ar: "تم إزالة وصفة"
+  },
+  newShoppingItemAdded: {
+    en: "A new shopping item has been added",
+    ar: "تمت إضافة عنصر جديد لقائمة التسوق"
+  },
+  itemUpdated: {
+    en: "Item updated",
+    ar: "تم تحديث العنصر"
+  },
+  shoppingItemModified: {
+    en: "A shopping item has been modified",
+    ar: "تم تعديل عنصر في قائمة التسوق"
+  },
+  shoppingItemRemoved: {
+    en: "A shopping item has been removed",
+    ar: "تم إزالة عنصر من قائمة التسوق"
+  },
+  itemToggled: {
+    en: "Item toggled",
+    ar: "تم تغيير حالة العنصر"
+  },
+  shoppingItemStatusChanged: {
+    en: "Shopping item status has been changed",
+    ar: "تم تغيير حالة عنصر في قائمة التسوق"
+  },
+  allCompletedItemsRemoved: {
+    en: "All completed items have been removed",
+    ar: "تم إزالة جميع العناصر المكتملة"
+  },
+  newPantryItemAdded: {
+    en: "A new pantry item has been added",
+    ar: "تمت إضافة عنصر جديد للمخزن"
+  },
+  pantryItemModified: {
+    en: "A pantry item has been modified",
+    ar: "تم تعديل عنصر في المخزن"
+  },
+  pantryItemRemoved: {
+    en: "A pantry item has been removed",
+    ar: "تم إزالة عنصر من المخزن"
   }
 };
 

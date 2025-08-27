@@ -4,15 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { RefreshCw, Check, AlertCircle } from 'lucide-react';
-
-type SyncStatus = 'idle' | 'syncing' | 'success' | 'error';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { RefreshCw, Check, AlertCircle, Wifi, WifiOff } from 'lucide-react';
 
 export function SyncStatus() {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
-  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const { isConnected, lastSynced, reconnect } = useWebSocket();
   const [autoSync, setAutoSync] = useState(true);
 
   // Load sync preferences from localStorage
@@ -21,54 +19,20 @@ export function SyncStatus() {
     if (savedAutoSync !== null) {
       setAutoSync(JSON.parse(savedAutoSync));
     }
-    
-    const savedLastSynced = localStorage.getItem('lastSynced');
-    if (savedLastSynced) {
-      setLastSynced(new Date(savedLastSynced));
-    }
   }, []);
 
-  // Auto sync every 5 minutes if enabled
-  useEffect(() => {
-    if (!autoSync) return;
-
-    const interval = setInterval(() => {
-      performSync();
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [autoSync]);
-
-  const performSync = async () => {
-    setSyncStatus('syncing');
-    
-    try {
-      // Simulate sync operation (in reality, this would sync with a backend)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update sync status
-      setSyncStatus('success');
-      const now = new Date();
-      setLastSynced(now);
-      localStorage.setItem('lastSynced', now.toISOString());
-      
+  const performManualSync = () => {
+    if (!isConnected) {
+      reconnect();
       toast({
-        title: t('syncSuccessful'),
-        description: t('dataUpdated'),
+        title: t('reconnecting'),
+        description: t('attemptingToReconnect'),
       });
-
-      // Reset to idle after 3 seconds
-      setTimeout(() => setSyncStatus('idle'), 3000);
-    } catch (error) {
-      setSyncStatus('error');
+    } else {
       toast({
-        title: t('syncFailed'),
-        description: t('tryAgainLater'),
-        variant: 'destructive',
+        title: t('alreadyConnected'),
+        description: t('realTimeSyncActive'),
       });
-
-      // Reset to idle after 5 seconds
-      setTimeout(() => setSyncStatus('idle'), 5000);
     }
   };
 
@@ -97,29 +61,15 @@ export function SyncStatus() {
   };
 
   const getSyncIcon = () => {
-    switch (syncStatus) {
-      case 'syncing':
-        return <RefreshCw className="h-4 w-4 animate-spin" />;
-      case 'success':
-        return <Check className="h-4 w-4 text-green-500" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <RefreshCw className="h-4 w-4" />;
+    if (isConnected) {
+      return <Wifi className="h-4 w-4 text-green-500" />;
+    } else {
+      return <WifiOff className="h-4 w-4 text-red-500" />;
     }
   };
 
   const getSyncBadgeVariant = () => {
-    switch (syncStatus) {
-      case 'syncing':
-        return 'default';
-      case 'success':
-        return 'default';
-      case 'error':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
+    return isConnected ? 'default' : 'destructive';
   };
 
   return (
@@ -129,13 +79,12 @@ export function SyncStatus() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={performSync}
-            disabled={syncStatus === 'syncing'}
+            onClick={performManualSync}
             data-testid="sync-button"
           >
             {getSyncIcon()}
             <span className="ml-1 hidden lg:inline">
-              {syncStatus === 'syncing' ? t('syncInProgress') : t('sync')}
+              {isConnected ? t('connected') : t('disconnected')}
             </span>
           </Button>
         </TooltipTrigger>
@@ -156,7 +105,7 @@ export function SyncStatus() {
       </Tooltip>
 
       <Badge variant={getSyncBadgeVariant()} className="hidden sm:inline-flex">
-        {autoSync ? t('autoSync') : t('manual')}
+        {isConnected ? t('realTimeSync') : t('offline')}
       </Badge>
     </div>
   );
