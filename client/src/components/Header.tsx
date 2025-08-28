@@ -46,7 +46,7 @@ export function Header() {
             </Link>
             <Link href="/pantry" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors flex items-center gap-1 font-medium" data-testid="nav-pantry">
               <Package className="h-4 w-4" />
-              {t('pantry')}
+              Pantry
             </Link>
             <Link href="/tools" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors flex items-center gap-1 font-medium" data-testid="nav-tools">
               <Utensils className="h-4 w-4" />

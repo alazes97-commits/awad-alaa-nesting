@@ -28,7 +28,10 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   const { toast } = useToast();
   const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
 
+  console.log('RecipeDetailModal render:', { recipe: recipe?.nameEn, isOpen, recipeFull: recipe });
+
   if (!recipe) {
+    console.log('RecipeDetailModal: No recipe provided');
     return null;
   }
 
@@ -126,8 +129,10 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
     : "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400";
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto z-[100]" data-testid="recipe-detail-modal">
+    <>
+      {console.log('Rendering dialog with isOpen:', isOpen)}
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto z-[100] bg-white dark:bg-gray-900" data-testid="recipe-detail-modal">
         <DialogHeader className="sticky top-0 bg-card border-b border-border pb-4">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-2xl font-bold" data-testid="recipe-detail-title">
@@ -369,6 +374,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
         onClose={() => setIsMultiSelectorOpen(false)}
         onAddToShoppingList={handleMultipleLinksAdd}
       />
-    </Dialog>
+      </Dialog>
+    </>
   );
 }
