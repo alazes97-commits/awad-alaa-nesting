@@ -111,6 +111,22 @@ export function ShoppingList() {
     },
   });
 
+  // Mark as bought and move to pantry mutation
+  const markAsBoughtMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('POST', `/api/shopping/${id}/buy`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/pantry', user?.familyGroupId] });
+      toast({
+        title: 'Item Bought!',
+        description: 'Item has been moved to your pantry',
+      });
+    },
+  });
+
   // Clear completed mutation
   const clearCompletedMutation = useMutation({
     mutationFn: async () => {
@@ -409,15 +425,28 @@ export function ShoppingList() {
                               <div className="text-xs text-gray-400 mt-1">{item.notes}</div>
                             )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteMutation.mutate(item.id)}
-                            disabled={deleteMutation.isPending}
-                            data-testid={`delete-item-${item.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => markAsBoughtMutation.mutate(item.id)}
+                              disabled={markAsBoughtMutation.isPending}
+                              className="text-green-600 hover:text-green-700"
+                              data-testid={`buy-item-${item.id}`}
+                              title="Mark as bought and move to pantry"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteMutation.mutate(item.id)}
+                              disabled={deleteMutation.isPending}
+                              data-testid={`delete-item-${item.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -459,15 +488,28 @@ export function ShoppingList() {
                               <div className="text-xs text-gray-400 mt-1">{item.notes}</div>
                             )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteMutation.mutate(item.id)}
-                            disabled={deleteMutation.isPending}
-                            data-testid={`delete-item-${item.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => markAsBoughtMutation.mutate(item.id)}
+                              disabled={markAsBoughtMutation.isPending}
+                              className="text-green-600 hover:text-green-700"
+                              data-testid={`buy-item-${item.id}`}
+                              title="Mark as bought and move to pantry"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteMutation.mutate(item.id)}
+                              disabled={deleteMutation.isPending}
+                              data-testid={`delete-item-${item.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

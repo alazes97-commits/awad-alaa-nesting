@@ -152,7 +152,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           >
             {recipeName || 'Untitled Recipe'}
           </h3>
-          <StarRating recipe={recipe} size="sm" interactive={false} />
+          <StarRating recipe={recipe} size="sm" interactive={true} />
         </div>
         
         <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-3">

@@ -46,8 +46,10 @@ const formSchema = z.object({
   additionalLinks: z.array(z.object({
     title: z.string().optional().default(''),
     url: z.string().optional().default(''),
+    description: z.string().optional().default(''),
   })).optional().default([]),
   rating: z.number().min(0).max(5).optional().default(0),
+  servings: z.number().min(1).optional().default(4),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -82,6 +84,7 @@ export function AddRecipe() {
       toolsAr: [''],
       additionalLinks: [],
       rating: 0,
+      servings: 4,
     },
   });
 
@@ -215,7 +218,7 @@ export function AddRecipe() {
 
   const addLink = () => {
     const current = form.getValues('additionalLinks');
-    form.setValue('additionalLinks', [...current, { title: '', url: '' }]);
+    form.setValue('additionalLinks', [...current, { title: '', url: '', description: '' }]);
   };
 
   const removeLink = (index: number) => {
@@ -395,6 +398,26 @@ export function AddRecipe() {
                               value={field.value || ''}
                               onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                               data-testid="prep-time-input"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="servings"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Number of Servings</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={field.value || ''}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              data-testid="servings-input"
                             />
                           </FormControl>
                           <FormMessage />
@@ -696,8 +719,11 @@ export function AddRecipe() {
                   {/* Additional Links */}
                   <div>
                     <h3 className="text-lg font-semibold mb-4">{t('additionalLinks')}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Add alternative recipes or video tutorials for the same dish
+                    </p>
                     {form.watch('additionalLinks').map((_, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg">
                         <FormField
                           control={form.control}
                           name={`additionalLinks.${index}.title`}
@@ -706,7 +732,7 @@ export function AddRecipe() {
                               {index === 0 && <FormLabel>Link Title</FormLabel>}
                               <FormControl>
                                 <Input
-                                  placeholder="Recipe video"
+                                  placeholder="Alternative recipe"
                                   {...field}
                                   data-testid={`link-title-${index}`}
                                 />
@@ -727,6 +753,23 @@ export function AddRecipe() {
                                   placeholder="https://..."
                                   {...field}
                                   data-testid={`link-url-${index}`}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`additionalLinks.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              {index === 0 && <FormLabel>Description</FormLabel>}
+                              <FormControl>
+                                <Input
+                                  placeholder="Video tutorial, alternative method..."
+                                  {...field}
+                                  data-testid={`link-description-${index}`}
                                 />
                               </FormControl>
                             </FormItem>

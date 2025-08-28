@@ -307,6 +307,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mark shopping item as bought and move to pantry
+  app.post("/api/shopping/:id/buy", async (req, res) => {
+    try {
+      const result = await storage.markShoppingItemAsBought(req.params.id);
+      if (!result) {
+        return res.status(404).json({ message: "Shopping item not found" });
+      }
+      
+      // Broadcast the changes to all connected clients
+      broadcastChange('shopping', 'delete', { id: req.params.id });
+      broadcastChange('pantry', 'create', result.pantryItem);
+      
+      res.json({ message: "Item moved to pantry successfully", pantryItem: result.pantryItem });
+    } catch (error) {
+      console.error("Failed to mark item as bought:", error);
+      res.status(500).json({ message: "Failed to mark item as bought" });
+    }
+  });
+
   app.delete("/api/shopping/completed", async (req, res) => {
     try {
       const familyGroupId = req.query.familyGroupId as string;

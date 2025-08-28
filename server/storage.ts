@@ -454,17 +454,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async clearCompletedShoppingItems(familyGroupId?: string): Promise<boolean> {
-    let condition = eq(shoppingList.isCompleted, true);
+    const conditions = [eq(shoppingList.isCompleted, true)];
     
     if (familyGroupId) {
-      condition = and(condition, eq(shoppingList.familyGroupId, familyGroupId));
+      conditions.push(eq(shoppingList.familyGroupId, familyGroupId));
     } else {
-      condition = and(condition, eq(shoppingList.familyGroupId, sql`NULL`));
+      conditions.push(eq(shoppingList.familyGroupId, sql`NULL`));
     }
     
     const result = await db
       .delete(shoppingList)
-      .where(condition);
+      .where(and(...conditions));
     return (result.rowCount || 0) > 0;
   }
 
@@ -501,6 +501,83 @@ export class DatabaseStorage implements IStorage {
   async deletePantryItem(id: string): Promise<boolean> {
     const result = await db.delete(pantry).where(eq(pantry.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async markShoppingItemAsBought(id: string): Promise<{ pantryItem: PantryItem } | undefined> {
+    try {
+      // Get the shopping item first
+      const shoppingItem = await this.getShoppingItemById(id);
+      if (!shoppingItem) {
+        return undefined;
+      }
+
+      // Create pantry item from shopping item
+      const pantryData = {
+        itemNameEn: shoppingItem.itemNameEn,
+        itemNameAr: shoppingItem.itemNameAr,
+        quantity: shoppingItem.quantity,
+        unit: shoppingItem.unit,
+        category: shoppingItem.category,
+        notes: shoppingItem.notes,
+        location: 'pantry', // default location
+        familyGroupId: shoppingItem.familyGroupId,
+        createdBy: shoppingItem.createdBy,
+      };
+
+      // Check if similar item already exists in pantry
+      const existingPantryItems = await db
+        .select()
+        .from(pantry)
+        .where(
+          and(
+            eq(pantry.itemNameEn, shoppingItem.itemNameEn),
+            eq(pantry.itemNameAr, shoppingItem.itemNameAr),
+            eq(pantry.unit, shoppingItem.unit || 'piece'),
+            eq(pantry.familyGroupId, shoppingItem.familyGroupId || '')
+          )
+        );
+
+      let pantryItem: PantryItem;
+
+      if (existingPantryItems.length > 0) {
+        // Merge with existing item
+        const existing = existingPantryItems[0];
+        const { amount: existingAmount } = this.parseQuantity(existing.quantity);
+        const { amount: newAmount } = this.parseQuantity(shoppingItem.quantity);
+        const totalAmount = existingAmount + newAmount;
+
+        const [updatedItem] = await db
+          .update(pantry)
+          .set({
+            quantity: `${totalAmount}`,
+            updatedAt: new Date(),
+            notes: existing.notes ? `${existing.notes}; ${shoppingItem.notes || 'Added from shopping list'}` : (shoppingItem.notes || 'Added from shopping list')
+          })
+          .where(eq(pantry.id, existing.id))
+          .returning();
+        
+        pantryItem = updatedItem;
+      } else {
+        // Create new pantry item
+        const [newItem] = await db
+          .insert(pantry)
+          .values({
+            ...pantryData,
+            notes: pantryData.notes || 'Added from shopping list'
+          })
+          .returning();
+        
+        pantryItem = newItem;
+      }
+
+      // Delete from shopping list
+      await db.delete(shoppingList).where(eq(shoppingList.id, id));
+
+      return { pantryItem };
+    } catch (error) {
+      console.error('Error marking shopping item as bought:', error);
+      throw error;
+    }
   }
 
   async getLowStockItems(): Promise<PantryItem[]> {
@@ -572,17 +649,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async clearAvailableToolsItems(familyGroupId?: string): Promise<boolean> {
-    let condition = eq(toolsList.isAvailable, true);
+    const conditions = [eq(toolsList.isAvailable, true)];
     
     if (familyGroupId) {
-      condition = and(condition, eq(toolsList.familyGroupId, familyGroupId));
+      conditions.push(eq(toolsList.familyGroupId, familyGroupId));
     } else {
-      condition = and(condition, eq(toolsList.familyGroupId, sql`NULL`));
+      conditions.push(eq(toolsList.familyGroupId, sql`NULL`));
     }
     
     const result = await db
       .delete(toolsList)
-      .where(condition);
+      .where(and(...conditions));
     return (result.rowCount || 0) > 0;
   }
 }

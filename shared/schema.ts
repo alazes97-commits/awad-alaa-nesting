@@ -53,9 +53,10 @@ export const recipes = pgTable("recipes", {
   instructionsAr: text("instructions_ar").notNull(),
   toolsEn: jsonb("tools_en").$type<string[]>().default([]),
   toolsAr: jsonb("tools_ar").$type<string[]>().default([]),
-  additionalLinks: jsonb("additional_links").$type<Array<{title: string, url: string}>>().default([]),
+  additionalLinks: jsonb("additional_links").$type<Array<{title: string, url: string, description?: string}>>().default([]),
   rating: integer("rating").default(0), // 0-5 stars
   category: text("category").notNull(), // 'breakfast', 'lunch', 'dinner', 'snack', 'dessert', 'drink'
+  servings: integer("servings").default(4), // number of people this recipe serves
   familyGroupId: varchar("family_group_id"),
   createdBy: varchar("created_by"),
   createdAt: timestamp("created_at").defaultNow(),
