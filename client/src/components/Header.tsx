@@ -64,10 +64,10 @@ export function Header() {
               <User className="text-accent-foreground text-sm" />
             </div>
 
-            {/* Mobile Menu Button - Show on smaller screens */}
+            {/* Mobile Menu Button - Always visible */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" data-testid="mobile-menu">
+                <Button variant="ghost" size="icon" className="block" data-testid="mobile-menu">
                   <Menu className="text-foreground" />
                 </Button>
               </SheetTrigger>

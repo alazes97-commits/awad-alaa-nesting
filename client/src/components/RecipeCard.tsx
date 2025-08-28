@@ -29,6 +29,8 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   const [isFavorited, setIsFavorited] = useState(false);
   const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
 
+  console.log('RecipeCard rendering for:', recipe?.nameEn || recipe?.nameAr, recipe);
+
   const addToShoppingListMutation = useMutation({
     mutationFn: async (selectedLinkIds?: number[]) => {
       const linksToProcess = selectedLinkIds || [0]; // Default to main recipe
@@ -120,8 +122,13 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
     ? recipe.images[0] 
     : "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250";
 
+  if (!recipe) {
+    console.log('RecipeCard: No recipe data provided');
+    return null;
+  }
+
   return (
-    <Card className="recipe-card overflow-hidden shadow-sm" data-testid={`recipe-card-${recipe.id}`}>
+    <Card className="group overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" data-testid={`recipe-card-${recipe.id}`}>
       <img 
         src={imageUrl}
         alt={recipeName}

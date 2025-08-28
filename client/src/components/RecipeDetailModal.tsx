@@ -135,12 +135,17 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
 
   return (
     <>
-      {console.log('Rendering dialog with isOpen:', isOpen)}
       <Dialog open={isOpen} onOpenChange={onClose} modal>
         <DialogContent 
-          className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border shadow-lg" 
+          className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border shadow-lg fixed top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2" 
           data-testid="recipe-detail-modal"
-          style={{ zIndex: 9999 }}
+          style={{ 
+            zIndex: 9999,
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)'
+          }}
         >
         <DialogHeader className="sticky top-0 bg-card border-b border-border pb-4">
           <div className="flex justify-between items-center">
