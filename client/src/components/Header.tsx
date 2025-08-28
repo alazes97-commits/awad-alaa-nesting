@@ -64,12 +64,15 @@ export function Header() {
               <User className="text-accent-foreground text-sm" />
             </div>
 
-            {/* Mobile Menu Button - Always visible */}
+            {/* Mobile Menu Button - Always visible with better styling */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="block" data-testid="mobile-menu">
-                  <Menu className="text-foreground" />
-                </Button>
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200" 
+                  data-testid="mobile-menu"
+                >
+                  <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <SheetHeader>

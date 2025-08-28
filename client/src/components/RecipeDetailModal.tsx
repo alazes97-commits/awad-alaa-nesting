@@ -1,19 +1,13 @@
-import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useUser } from '@/hooks/useUser';
-import { useMutation } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
 import { MultiRecipeSelector } from '@/components/MultiRecipeSelector';
-import { useToast } from '@/hooks/use-toast';
-import { Edit, Heart, Globe, Flame, Leaf, Clock, Check, ShoppingCart } from 'lucide-react';
+import { Clock, Globe, Flame, Leaf, Edit, Plus, ShoppingCart, List } from 'lucide-react';
 import { Recipe } from '@shared/schema';
-import { processIngredients } from '@/utils/ingredientUtils';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useState } from 'react';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -24,371 +18,279 @@ interface RecipeDetailModalProps {
 
 export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDetailModalProps) {
   const { t, language } = useLanguage();
-  const { user } = useUser();
-  const { toast } = useToast();
   const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
 
-  console.log('🔍 RecipeDetailModal render:', { 
-    recipe: recipe?.nameEn, 
-    isOpen, 
+  console.log('🔍 RecipeDetailModal render:', {
+    isOpen,
     hasRecipe: !!recipe,
-    recipeFull: recipe 
+    recipeFull: recipe
   });
 
-  if (!recipe) {
-    console.log('❌ RecipeDetailModal: No recipe provided');
+  if (!isOpen) {
     return null;
   }
 
-  const addToShoppingListMutation = useMutation({
-    mutationFn: async (selectedLinkIds?: number[]) => {
-      const linksToProcess = selectedLinkIds || [0]; // Default to main recipe
-      
-      const allPromises: Promise<any>[] = [];
-      
-      for (const linkId of linksToProcess) {
-        // For now, use main recipe data for all links (can be enhanced later)
-        const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
-        const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
-        const processedIngredients = processIngredients(ingredients || []);
-        
-        const linkTitle = linkId === 0 ? 'Main Recipe' : recipe.additionalLinks?.[linkId - 1]?.title || `Link ${linkId}`;
-        
-        // Add ingredients to shopping list
-        const ingredientPromises = processedIngredients.map(ingredient => 
-          apiRequest('POST', '/api/shopping', {
-            itemNameEn: language === 'en' ? ingredient.name : '',
-            itemNameAr: language === 'ar' ? ingredient.name : '',
-            quantity: `${ingredient.amount} ${ingredient.unit}`,
-            unit: ingredient.unit,
-            category: ingredient.category,
-            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
-            recipeId: recipe.id,
-            familyGroupId: user?.familyGroupId || null,
-            createdBy: user?.id || null
-          })
-        );
-        
-        // Add tools to tools list
-        const toolPromises = (tools || [])
-          .filter(tool => tool && tool.trim() !== '')
-          .map(tool => 
-            apiRequest('POST', '/api/tools', {
-              toolNameEn: language === 'en' ? tool : '',
-              toolNameAr: language === 'ar' ? tool : '',
-              category: 'cooking',
-              notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
-              isAvailable: false,
-              recipeId: recipe.id,
-              familyGroupId: user?.familyGroupId || null,
-              createdBy: user?.id || null
-            })
-          );
-        
-        allPromises.push(...ingredientPromises, ...toolPromises);
-      }
-      
-      await Promise.all(allPromises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/tools', user?.familyGroupId] });
-      toast({
-        title: t('success'),
-        description: 'Ingredients and tools added to lists!',
-      });
-    },
-    onError: () => {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToAddToShoppingList'),
-        variant: 'destructive',
-      });
-    }
-  });
+  if (!recipe) {
+    console.log('❌ RecipeDetailModal: No recipe provided');
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        onClick={onClose}
+      >
+        <div 
+          className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Error</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">No recipe data available</p>
+          <button 
+            onClick={onClose} 
+            className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors duration-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const handleAddToShoppingList = () => {
-    // Check if recipe has additional links
-    const hasMultipleLinks = recipe.additionalLinks && recipe.additionalLinks.length > 0;
-    
-    if (hasMultipleLinks) {
-      setIsMultiSelectorOpen(true);
-    } else {
-      addToShoppingListMutation.mutate([0]); // Add main recipe only
-    }
-  };
+  const recipeName = language === 'ar' ? recipe.nameAr || recipe.nameEn : recipe.nameEn || recipe.nameAr;
+  const recipeDescription = language === 'ar' ? recipe.descriptionAr || recipe.descriptionEn : recipe.descriptionEn || recipe.descriptionAr;
+  const ingredients = language === 'ar' ? recipe.ingredientsAr || recipe.ingredientsEn : recipe.ingredientsEn || recipe.ingredientsAr;
+  const instructions = language === 'ar' ? recipe.instructionsAr || recipe.instructionsEn : recipe.instructionsEn || recipe.instructionsAr;
+  const tools = language === 'ar' ? recipe.toolsAr || recipe.toolsEn : recipe.toolsEn || recipe.toolsAr;
 
-  const handleMultipleLinksAdd = (selectedLinkIds: number[]) => {
-    addToShoppingListMutation.mutate(selectedLinkIds);
-  };
-
-
-  const recipeName = language === 'ar' ? recipe.nameAr : recipe.nameEn;
-  const recipeInstructions = language === 'ar' ? recipe.instructionsAr : recipe.instructionsEn;
-  const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
-  const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
-
-  // Use a placeholder image if no images are provided
   const imageUrl = recipe.images && recipe.images.length > 0 
     ? recipe.images[0] 
-    : "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400";
+    : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' font-family='Arial' font-size='24' fill='%23666' text-anchor='middle' dy='.3em'%3ERecipe Image%3C/text%3E%3C/svg%3E";
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose} modal>
-        <DialogContent 
-          className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border shadow-lg fixed top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2" 
-          data-testid="recipe-detail-modal"
-          style={{ 
-            zIndex: 9999,
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)'
-          }}
-        >
-        <DialogHeader className="sticky top-0 bg-card border-b border-border pb-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-2xl font-bold" data-testid="recipe-detail-title">
-              {recipeName}
-            </DialogTitle>
-            <StarRating recipe={recipe} interactive size="md" />
-          </div>
-          <DialogDescription className="sr-only">
-            Recipe details for {recipeName}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-6">
-          {/* Left Column: Images and Video */}
-          <div className="lg:col-span-2">
-            {/* Image Gallery */}
-            <img 
-              src={imageUrl}
-              alt={recipeName}
-              className="w-full h-64 object-cover rounded-lg mb-4"
-              data-testid="recipe-detail-image"
-            />
-
-            {/* Video Section */}
-            {recipe.videoUrl && (
-              <div className="bg-muted rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-lg mb-3">
-                  {t('videoTutorial')}
-                </h3>
-                <div className="aspect-video bg-secondary rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">▶</div>
-                    <p className="text-muted-foreground">
-                      <a 
-                        href={recipe.videoUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                        data-testid="video-tutorial-link"
-                      >
-                        Watch Tutorial
-                      </a>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column: Recipe Details */}
-          <div>
-            {/* Quick Info */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {t('quickInfo')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center">
-                    <Globe className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    {t('country')}:
-                  </span>
-                  <span className="font-medium">{t(recipe.country)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center">
-                    {recipe.servingTemperature === 'hot' ? (
-                      <Flame className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    ) : (
-                      <Leaf className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                    )}
-                    {t('serving')}:
-                  </span>
-                  <span className="font-medium">{t(recipe.servingTemperature)}</span>
-                </div>
-                {recipe.calories && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground flex items-center">
-                      <Leaf className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                      {t('calories')}:
-                    </span>
-                    <span className="font-medium">{recipe.calories} cal</span>
-                  </div>
-                )}
-                {recipe.prepTime && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground flex items-center">
-                      <Clock className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                      {t('prepTime')}:
-                    </span>
-                    <span className="font-medium">{recipe.prepTime} min</span>
-                  </div>
-                )}
-                <div className="pt-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {t(recipe.category)}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Tools Required */}
-            {tools && tools.length > 0 && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {t('toolsRequired')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {tools.map((tool, index) => (
-                      <li key={index} className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                        <span>{tool}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Actions */}
-            <div className="space-y-3">
-              <Button 
-                className="w-full" 
-                onClick={handleAddToShoppingList}
-                disabled={addToShoppingListMutation.isPending}
-                data-testid="add-to-shopping-list-button"
-              >
-                <ShoppingCart className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                {t('addToShoppingList')}
-              </Button>
-              <Button 
-                variant="outline"
-                className="w-full" 
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {recipeName || 'Recipe Details'}
+            </h2>
+            <div className="flex gap-2">
+              <button
                 onClick={() => onEdit(recipe)}
-                data-testid="edit-recipe-button"
+                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                title="Edit Recipe"
               >
-                <Edit className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                {t('editRecipe')}
-              </Button>
-              <Button variant="outline" className="w-full" data-testid="add-to-favorites-button">
-                <Heart className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                {t('addToFavorites')}
-              </Button>
-              <ShareButton recipe={recipe} variant="outline" size="default" />
+                <Edit className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Ingredients and Instructions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-6 pb-6">
-          {/* Ingredients */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">
-                {t('ingredients')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {ingredients && ingredients.length > 0 ? (
-                  ingredients.map((ingredient, index) => (
-                    <li 
-                      key={index} 
-                      className="flex justify-between items-center p-2 bg-muted rounded border"
-                      data-testid={`ingredient-${index}`}
-                    >
-                      <span>{typeof ingredient === 'string' ? ingredient : (ingredient as any)?.name || String(ingredient)}</span>
-                      <span className="font-medium">{typeof ingredient === 'object' && (ingredient as any)?.amount ? (ingredient as any).amount : ''}</span>
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-muted-foreground italic">No ingredients available</li>
-                )}
-              </ul>
-            </CardContent>
-          </Card>
+        {/* Content */}
+        <div className="p-6">
+          {/* Image */}
+          <div className="w-full h-64 mb-6 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+            <img 
+              src={imageUrl}
+              alt={recipeName || 'Recipe'}
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-          {/* Instructions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">
-                {t('instructions')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="prose prose-sm max-w-none">
-                {recipeInstructions ? (
-                  <p className="whitespace-pre-wrap" data-testid="recipe-instructions">
-                    {recipeInstructions}
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground italic">No instructions available</p>
+          {/* Recipe Info */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Recipe Information</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700 dark:text-gray-300">Country: {recipe.country || 'Not specified'}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {recipe.servingTemperature === 'hot' ? (
+                    <Flame className="w-4 h-4 text-orange-500" />
+                  ) : (
+                    <Leaf className="w-4 h-4 text-green-500" />
+                  )}
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Temperature: {recipe.servingTemperature || 'Not specified'}
+                  </span>
+                </div>
+
+                {recipe.prepTime && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-500" />
+                    <span className="text-gray-700 dark:text-gray-300">Prep Time: {recipe.prepTime} minutes</span>
+                  </div>
+                )}
+
+                {recipe.calories && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700 dark:text-gray-300">Calories: {recipe.calories}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-700 dark:text-gray-300">Rating:</span>
+                  <div className="text-yellow-500">
+                    {'★'.repeat(recipe.rating || 0)}{'☆'.repeat(5 - (recipe.rating || 0))}
+                  </div>
+                </div>
+
+                {recipe.category && (
+                  <div>
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded-full">
+                      {recipe.category}
+                    </span>
+                  </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        {/* Additional Links */}
-        {recipe.additionalLinks && recipe.additionalLinks.length > 0 && (
-          <div className="px-6 pb-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">
-                  {t('additionalLinks')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {recipe.additionalLinks.map((link, index) => (
-                    <li key={index}>
-                      <a 
-                        href={link.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                        data-testid={`additional-link-${index}`}
-                      >
-                        {link.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Description</h3>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                {recipeDescription || 'No description available.'}
+              </p>
+            </div>
           </div>
-        )}
-      </DialogContent>
-      
+
+          {/* Ingredients */}
+          {ingredients && ingredients.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                <List className="w-5 h-5" />
+                Ingredients
+              </h3>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {ingredients.map((ingredient, index) => (
+                  <div 
+                    key={index}
+                    className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <span className="text-gray-900 dark:text-white font-medium">
+                      {ingredient.name}
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {ingredient.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tools */}
+          {tools && tools.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Tools Needed</h3>
+              <div className="flex flex-wrap gap-2">
+                {tools.map((tool, index) => (
+                  <span 
+                    key={index}
+                    className="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-sm rounded-full"
+                  >
+                    {tool}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Instructions */}
+          {instructions && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Instructions</h3>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                  {instructions}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Video Link */}
+          {recipe.videoUrl && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Video</h3>
+              <a 
+                href={recipe.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors duration-200"
+              >
+                Watch Video
+              </a>
+            </div>
+          )}
+
+          {/* Additional Links */}
+          {recipe.additionalLinks && recipe.additionalLinks.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Additional Recipe Links</h3>
+              <div className="space-y-2">
+                {recipe.additionalLinks.map((link, index) => (
+                  <a 
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-3 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200"
+                  >
+                    <div className="font-medium text-blue-800 dark:text-blue-200">{link.title}</div>
+                    {link.description && (
+                      <div className="text-sm text-blue-600 dark:text-blue-300">{link.description}</div>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex flex-wrap gap-4">
+            <button
+              onClick={() => setIsMultiSelectorOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors duration-200"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Add to Shopping List
+            </button>
+            <button
+              onClick={() => onEdit(recipe)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors duration-200"
+            >
+              <Edit className="w-4 h-4" />
+              Edit Recipe
+            </button>
+            <ShareButton recipe={recipe} />
+          </div>
+        </div>
+      </div>
+
       {/* Multi Recipe Selector Modal */}
-      <MultiRecipeSelector
-        recipe={recipe}
-        isOpen={isMultiSelectorOpen}
-        onClose={() => setIsMultiSelectorOpen(false)}
-        onAddToShoppingList={handleMultipleLinksAdd}
-      />
-      </Dialog>
-    </>
+      {isMultiSelectorOpen && (
+        <MultiRecipeSelector
+          recipe={recipe}
+          isOpen={isMultiSelectorOpen}
+          onClose={() => setIsMultiSelectorOpen(false)}
+          onAddToShoppingList={() => {}}
+        />
+      )}
+    </div>
   );
 }

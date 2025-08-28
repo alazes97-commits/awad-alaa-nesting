@@ -128,127 +128,114 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   }
 
   return (
-    <Card className="group overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" data-testid={`recipe-card-${recipe.id}`}>
-      <img 
-        src={imageUrl}
-        alt={recipeName}
-        className="w-full h-48 object-cover"
-      />
-      <CardContent className="p-4">
+    <div 
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
+      data-testid={`recipe-card-${recipe.id}`}
+      style={{ minHeight: '400px', display: 'block', width: '100%' }}
+    >
+      <div className="w-full h-48 bg-gray-100 dark:bg-gray-700 overflow-hidden">
+        <img 
+          src={imageUrl}
+          alt={recipeName || 'Recipe'}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='14' fill='%23666' text-anchor='middle' dy='.3em'%3ERecipe%3C/text%3E%3C/svg%3E";
+          }}
+        />
+      </div>
+      
+      <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-lg text-foreground line-clamp-1" data-testid={`recipe-title-${recipe.id}`}>
-            {recipeName}
+          <h3 
+            className="font-semibold text-lg text-gray-900 dark:text-white truncate flex-1 mr-2" 
+            data-testid={`recipe-title-${recipe.id}`}
+          >
+            {recipeName || 'Untitled Recipe'}
           </h3>
-          <StarRating recipe={recipe} size="sm" />
+          <div className="text-yellow-500 text-sm">
+            {'★'.repeat(recipe.rating || 0)}
+          </div>
         </div>
         
-        <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+        <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-3">
           <span className="flex items-center">
-            <Globe className="w-4 h-4 mr-1 rtl:mr-0 rtl:ml-1" />
-            {t(recipe.country)}
+            <Globe className="w-4 h-4 mr-1" />
+            {recipe.country || 'Unknown'}
           </span>
           <span className="flex items-center">
-            {recipe.servingTemperature === 'hot' ? (
-              <Flame className="w-4 h-4 mr-1 rtl:mr-0 rtl:ml-1" />
-            ) : (
-              <Leaf className="w-4 h-4 mr-1 rtl:mr-0 rtl:ml-1" />
-            )}
-            {t(recipe.servingTemperature)}
+            {recipe.servingTemperature === 'hot' ? '🔥' : '🥬'}
+            <span className="ml-1">{recipe.servingTemperature || 'N/A'}</span>
           </span>
-          {recipe.calories && (
-            <span className="flex items-center">
-              <Leaf className="w-4 h-4 mr-1 rtl:mr-0 rtl:ml-1" />
-              {recipe.calories} cal
-            </span>
-          )}
         </div>
 
         {recipeDescription && (
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
             {recipeDescription}
           </p>
         )}
 
         <div className="flex items-center gap-2 mb-4">
-          <Badge variant="secondary" className="text-xs">
-            {t(recipe.category)}
-          </Badge>
+          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">
+            {recipe.category || 'General'}
+          </span>
           {recipe.prepTime && (
-            <Badge variant="outline" className="text-xs">
+            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs rounded">
               {recipe.prepTime} min
-            </Badge>
+            </span>
           )}
         </div>
         
-        <div className="flex space-x-2 rtl:space-x-reverse">
-          <Button
-            className="flex-1"
+        <div className="flex space-x-2">
+          <button
+            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             onClick={() => {
-              console.log('Recipe card view button clicked for:', recipe.nameEn);
+              console.log('Recipe card view button clicked for:', recipe.nameEn || recipe.nameAr);
               onView(recipe);
             }}
             data-testid={`view-recipe-${recipe.id}`}
           >
-            {t('viewRecipe')}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
+            View Recipe
+          </button>
+          <button
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
             onClick={handleAddToShoppingList}
             disabled={addToShoppingListMutation.isPending}
             data-testid={`add-to-shopping-${recipe.id}`}
-            title={t('addToShoppingList')}
+            title="Add to Shopping List"
           >
-            <ShoppingCart className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
+            <ShoppingCart className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+          </button>
+          <button
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
             onClick={() => setIsFavorited(!isFavorited)}
             data-testid={`favorite-recipe-${recipe.id}`}
           >
-            <Heart className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                data-testid={`delete-recipe-${recipe.id}`}
-                title={t('deleteRecipe')}
-              >
-                <Trash2 className="w-4 h-4 text-red-500" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('confirmDelete')}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t('deleteRecipeConfirmation').replace('{{recipeName}}', language === 'ar' ? recipe.nameAr || recipe.nameEn : recipe.nameEn || recipe.nameAr)}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => onDelete(recipe.id)}
-                  className="bg-red-500 hover:bg-red-600 text-white"
-                >
-                  {t('delete')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <ShareButton recipe={recipe} />
+            <Heart className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
+          </button>
+          <button
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900 transition-colors duration-200"
+            onClick={() => {
+              if (confirm(`Delete recipe: ${recipeName || 'this recipe'}?`)) {
+                onDelete(recipe.id);
+              }
+            }}
+            data-testid={`delete-recipe-${recipe.id}`}
+            title="Delete Recipe"
+          >
+            <Trash2 className="w-4 h-4 text-red-500" />
+          </button>
         </div>
-      </CardContent>
+      </div>
 
       {/* Multi Recipe Selector Modal */}
-      <MultiRecipeSelector
-        recipe={recipe}
-        isOpen={isMultiSelectorOpen}
-        onClose={() => setIsMultiSelectorOpen(false)}
-        onAddToShoppingList={handleMultipleLinksAdd}
-      />
-    </Card>
+      {isMultiSelectorOpen && (
+        <MultiRecipeSelector
+          recipe={recipe}
+          isOpen={isMultiSelectorOpen}
+          onClose={() => setIsMultiSelectorOpen(false)}
+          onAddToShoppingList={handleMultipleLinksAdd}
+        />
+      )}
+    </div>
   );
 }
