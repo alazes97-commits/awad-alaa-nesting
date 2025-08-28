@@ -360,15 +360,15 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             </Card>
           </div>
         )}
-
-        {/* Multi Recipe Selector Modal */}
-        <MultiRecipeSelector
-          recipe={recipe}
-          isOpen={isMultiSelectorOpen}
-          onClose={() => setIsMultiSelectorOpen(false)}
-          onAddToShoppingList={handleMultipleLinksAdd}
-        />
       </DialogContent>
+      
+      {/* Multi Recipe Selector Modal */}
+      <MultiRecipeSelector
+        recipe={recipe}
+        isOpen={isMultiSelectorOpen}
+        onClose={() => setIsMultiSelectorOpen(false)}
+        onAddToShoppingList={handleMultipleLinksAdd}
+      />
     </Dialog>
   );
 }
