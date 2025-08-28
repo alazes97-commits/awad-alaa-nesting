@@ -49,6 +49,8 @@ export function Tools() {
     enabled: !!user
   });
 
+  const toolsArray = Array.isArray(toolsItems) ? toolsItems : [];
+
   // Create tool mutation
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -119,8 +121,8 @@ export function Tools() {
     createMutation.mutate(data);
   };
 
-  const availableTools = toolsItems.filter((item: any) => item.isAvailable);
-  const neededTools = toolsItems.filter((item: any) => !item.isAvailable);
+  const availableTools = toolsArray.filter((item: any) => item.isAvailable);
+  const neededTools = toolsArray.filter((item: any) => !item.isAvailable);
 
   return (
     <div className={`h-full bg-gray-50 dark:bg-gray-900 ${isRtl ? 'rtl' : 'ltr'} flex flex-col overflow-hidden`}>

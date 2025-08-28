@@ -176,7 +176,10 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             className="flex-1"
-            onClick={() => onView(recipe)}
+            onClick={() => {
+              console.log('Recipe card view button clicked for:', recipe.nameEn);
+              onView(recipe);
+            }}
             data-testid={`view-recipe-${recipe.id}`}
           >
             {t('viewRecipe')}

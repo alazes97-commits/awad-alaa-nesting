@@ -28,10 +28,15 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   const { toast } = useToast();
   const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
 
-  console.log('RecipeDetailModal render:', { recipe: recipe?.nameEn, isOpen, recipeFull: recipe });
+  console.log('🔍 RecipeDetailModal render:', { 
+    recipe: recipe?.nameEn, 
+    isOpen, 
+    hasRecipe: !!recipe,
+    recipeFull: recipe 
+  });
 
   if (!recipe) {
-    console.log('RecipeDetailModal: No recipe provided');
+    console.log('❌ RecipeDetailModal: No recipe provided');
     return null;
   }
 
@@ -131,8 +136,12 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   return (
     <>
       {console.log('Rendering dialog with isOpen:', isOpen)}
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto z-[100] bg-white dark:bg-gray-900" data-testid="recipe-detail-modal">
+      <Dialog open={isOpen} onOpenChange={onClose} modal>
+        <DialogContent 
+          className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border shadow-lg" 
+          data-testid="recipe-detail-modal"
+          style={{ zIndex: 9999 }}
+        >
         <DialogHeader className="sticky top-0 bg-card border-b border-border pb-4">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-2xl font-bold" data-testid="recipe-detail-title">

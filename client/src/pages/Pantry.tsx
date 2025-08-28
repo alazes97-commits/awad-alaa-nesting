@@ -67,6 +67,10 @@ export function Pantry() {
     queryKey: ['/api/pantry/expiring-soon'],
   });
 
+  const pantryArray = Array.isArray(pantryItems) ? pantryItems : [];
+  const lowStockArray = Array.isArray(lowStockItems) ? lowStockItems : [];
+  const expiringSoonArray = Array.isArray(expiringSoonItems) ? expiringSoonItems : [];
+
   // Add item mutation
   const addMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -342,26 +346,26 @@ export function Pantry() {
         </div>
 
         {/* Alerts */}
-        {((lowStockItems as any[]).length > 0 || (expiringSoonItems as any[]).length > 0) && (
+        {(lowStockArray.length > 0 || expiringSoonArray.length > 0) && (
           <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(lowStockItems as any[]).length > 0 && (
+            {lowStockArray.length > 0 && (
               <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/20">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
                     <AlertTriangle className="h-5 w-5" />
-                    {t('lowStock')} ({lowStockItems.length})
+                    {t('lowStock')} ({lowStockArray.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {(lowStockItems as any[]).slice(0, 3).map((item: any) => (
+                    {lowStockArray.slice(0, 3).map((item: any) => (
                       <div key={item.id} className="text-sm text-orange-700 dark:text-orange-300">
                         {language === 'ar' ? item.itemNameAr || item.itemNameEn : item.itemNameEn || item.itemNameAr}
                       </div>
                     ))}
-                    {(lowStockItems as any[]).length > 3 && (
+                    {lowStockArray.length > 3 && (
                       <div className="text-xs text-orange-600 dark:text-orange-400">
-                        +{(lowStockItems as any[]).length - 3} {t('more')}
+                        +{lowStockArray.length - 3} {t('more')}
                       </div>
                     )}
                   </div>
@@ -369,24 +373,24 @@ export function Pantry() {
               </Card>
             )}
 
-            {(expiringSoonItems as any[]).length > 0 && (
+            {expiringSoonArray.length > 0 && (
               <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
                     <Calendar className="h-5 w-5" />
-                    {t('expiringSoon')} ({expiringSoonItems.length})
+                    {t('expiringSoon')} ({expiringSoonArray.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {(expiringSoonItems as any[]).slice(0, 3).map((item: any) => (
+                    {expiringSoonArray.slice(0, 3).map((item: any) => (
                       <div key={item.id} className="text-sm text-red-700 dark:text-red-300">
                         {language === 'ar' ? item.itemNameAr || item.itemNameEn : item.itemNameEn || item.itemNameAr}
                       </div>
                     ))}
-                    {(expiringSoonItems as any[]).length > 3 && (
+                    {expiringSoonArray.length > 3 && (
                       <div className="text-xs text-red-600 dark:text-red-400">
-                        +{(expiringSoonItems as any[]).length - 3} {t('more')}
+                        +{expiringSoonArray.length - 3} {t('more')}
                       </div>
                     )}
                   </div>
@@ -400,7 +404,7 @@ export function Pantry() {
           <div className="flex justify-center py-8">
             <div className="text-gray-500">{t('loading')}...</div>
           </div>
-        ) : (pantryItems as any[]).length === 0 ? (
+        ) : pantryArray.length === 0 ? (
           <Card>
             <CardContent className="py-12">
               <div className="text-center text-gray-500">
@@ -411,7 +415,7 @@ export function Pantry() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(pantryItems as any[]).map((item: any) => (
+            {pantryArray.map((item: any) => (
               <Card key={item.id} className="relative" data-testid={`pantry-item-${item.id}`}>
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
