@@ -30,9 +30,11 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   const addToShoppingListMutation = useMutation({
     mutationFn: async () => {
       const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
+      const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
       const processedIngredients = processIngredients(ingredients || []);
       
-      const promises = processedIngredients.map(ingredient => 
+      // Add ingredients to shopping list
+      const ingredientPromises = processedIngredients.map(ingredient => 
         apiRequest('POST', '/api/shopping', {
           itemNameEn: language === 'en' ? ingredient.name : '',
           itemNameAr: language === 'ar' ? ingredient.name : '',
@@ -46,13 +48,30 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
         })
       );
       
-      await Promise.all(promises);
+      // Add tools to tools list
+      const toolPromises = (tools || [])
+        .filter(tool => tool && tool.trim() !== '')
+        .map(tool => 
+          apiRequest('POST', '/api/tools', {
+            toolNameEn: language === 'en' ? tool : '',
+            toolNameAr: language === 'ar' ? tool : '',
+            category: 'cooking',
+            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
+            isAvailable: false,
+            recipeId: recipe.id,
+            familyGroupId: user?.familyGroupId || null,
+            createdBy: user?.id || null
+          })
+        );
+      
+      await Promise.all([...ingredientPromises, ...toolPromises]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tools', user?.familyGroupId] });
       toast({
         title: t('success'),
-        description: t('ingredientsAddedToShoppingList'),
+        description: 'Ingredients and tools added to lists!',
       });
     },
     onError: () => {

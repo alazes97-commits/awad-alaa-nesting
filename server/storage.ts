@@ -2,6 +2,7 @@ import {
   recipes, 
   shoppingList, 
   pantry, 
+  toolsList,
   users, 
   familyGroups,
   type Recipe, 
@@ -10,6 +11,8 @@ import {
   type InsertShoppingListItem,
   type PantryItem,
   type InsertPantryItem,
+  type ToolsListItem,
+  type InsertToolsListItem,
   type User,
   type InsertUser,
   type FamilyGroup,
@@ -55,6 +58,15 @@ export interface IStorage {
   createPantryItem(item: InsertPantryItem): Promise<PantryItem>;
   updatePantryItem(id: string, item: Partial<InsertPantryItem>): Promise<PantryItem | undefined>;
   deletePantryItem(id: string): Promise<boolean>;
+  
+  // Tools list operations (family-scoped)
+  getAllToolsItems(familyGroupId?: string): Promise<ToolsListItem[]>;
+  getToolsItemById(id: string): Promise<ToolsListItem | undefined>;
+  createToolsItem(item: InsertToolsListItem): Promise<ToolsListItem>;
+  updateToolsItem(id: string, item: Partial<InsertToolsListItem>): Promise<ToolsListItem | undefined>;
+  deleteToolsItem(id: string): Promise<boolean>;
+  toggleToolsItemAvailable(id: string): Promise<ToolsListItem | undefined>;
+  clearAvailableToolsItems(familyGroupId?: string): Promise<boolean>;
   
   // Additional shopping list operations
   toggleShoppingItemCompleted(id: string): Promise<ShoppingListItem | undefined>;
@@ -519,6 +531,68 @@ export class DatabaseStorage implements IStorage {
           sql`${pantry.expiryDate} <= ${sevenDaysFromNow.toISOString()}`
         )
       );
+  }
+
+  // Tools list operations
+  async getAllToolsItems(familyGroupId?: string): Promise<ToolsListItem[]> {
+    if (familyGroupId) {
+      return await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
+    }
+    return await db.select().from(toolsList).where(eq(toolsList.familyGroupId, sql`NULL`));
+  }
+
+  async getToolsItemById(id: string): Promise<ToolsListItem | undefined> {
+    const [item] = await db.select().from(toolsList).where(eq(toolsList.id, id));
+    return item;
+  }
+
+  async createToolsItem(itemData: InsertToolsListItem): Promise<ToolsListItem> {
+    const [item] = await db
+      .insert(toolsList)
+      .values(itemData)
+      .returning();
+    return item;
+  }
+
+  async updateToolsItem(id: string, itemData: Partial<InsertToolsListItem>): Promise<ToolsListItem | undefined> {
+    const [item] = await db
+      .update(toolsList)
+      .set({ ...itemData, updatedAt: new Date() })
+      .where(eq(toolsList.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteToolsItem(id: string): Promise<boolean> {
+    const result = await db.delete(toolsList).where(eq(toolsList.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async toggleToolsItemAvailable(id: string): Promise<ToolsListItem | undefined> {
+    const item = await this.getToolsItemById(id);
+    if (!item) return undefined;
+
+    const [updatedItem] = await db
+      .update(toolsList)
+      .set({ isAvailable: !item.isAvailable, updatedAt: new Date() })
+      .where(eq(toolsList.id, id))
+      .returning();
+    return updatedItem;
+  }
+
+  async clearAvailableToolsItems(familyGroupId?: string): Promise<boolean> {
+    let condition = eq(toolsList.isAvailable, true);
+    
+    if (familyGroupId) {
+      condition = and(condition, eq(toolsList.familyGroupId, familyGroupId));
+    } else {
+      condition = and(condition, eq(toolsList.familyGroupId, sql`NULL`));
+    }
+    
+    const result = await db
+      .delete(toolsList)
+      .where(condition);
+    return (result.rowCount || 0) > 0;
   }
 }
 

@@ -10,6 +10,7 @@ import { Home } from "./pages/Home";
 import { AddRecipe } from "./pages/AddRecipe";
 import { ShoppingList } from "./pages/ShoppingList";
 import { Pantry } from "./pages/Pantry";
+import { Tools } from "./pages/Tools";
 import NotFound from "@/pages/not-found";
 
 // WebSocket wrapper component
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/add" component={AddRecipe} />
       <Route path="/shopping" component={ShoppingList} />
       <Route path="/pantry" component={Pantry} />
+      <Route path="/tools" component={Tools} />
       <Route component={NotFound} />
     </Switch>
   );

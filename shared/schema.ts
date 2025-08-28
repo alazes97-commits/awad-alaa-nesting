@@ -124,6 +124,30 @@ export const insertPantrySchema = createInsertSchema(pantry).omit({
 export type InsertPantryItem = z.infer<typeof insertPantrySchema>;
 export type PantryItem = typeof pantry.$inferSelect;
 
+// Tools List Schema
+export const toolsList = pgTable("tools_list", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  toolNameEn: text("tool_name_en").notNull(),
+  toolNameAr: text("tool_name_ar").notNull(),
+  category: text("category"), // 'cooking', 'baking', 'preparation', etc
+  notes: text("notes"),
+  isAvailable: boolean("is_available").default(false),
+  recipeId: varchar("recipe_id"), // optional reference to recipe
+  familyGroupId: varchar("family_group_id"),
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertToolsListSchema = createInsertSchema(toolsList).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertToolsListItem = z.infer<typeof insertToolsListSchema>;
+export type ToolsListItem = typeof toolsList.$inferSelect;
+
 // User and Family Group Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

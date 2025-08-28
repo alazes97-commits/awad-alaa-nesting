@@ -48,6 +48,10 @@ export function Header() {
               <Package className="h-4 w-4" />
               {t('pantry')}
             </Link>
+            <Link href="/tools" className="text-foreground hover:text-primary transition-colors flex items-center gap-1" data-testid="nav-tools">
+              <Utensils className="h-4 w-4" />
+              Tools
+            </Link>
           </nav>
 
           {/* Sync, Language Toggle and User Menu */}
@@ -110,6 +114,15 @@ export function Header() {
                   >
                     <Package className="h-5 w-5" />
                     {t('pantry')}
+                  </Link>
+                  <Link 
+                    href="/tools" 
+                    className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    data-testid="mobile-nav-tools"
+                  >
+                    <Utensils className="h-5 w-5" />
+                    Tools
                   </Link>
                 </nav>
               </SheetContent>

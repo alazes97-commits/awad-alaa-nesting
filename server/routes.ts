@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertRecipeSchema, insertShoppingListSchema, insertPantrySchema, insertUserSchema, insertFamilyGroupSchema } from "@shared/schema";
+import { insertRecipeSchema, insertShoppingListSchema, insertPantrySchema, insertToolsListSchema, insertUserSchema, insertFamilyGroupSchema } from "@shared/schema";
 
 // Store connected clients for real-time sync
 const connectedClients = new Set<WebSocket>();
@@ -396,6 +396,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Pantry item deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete pantry item" });
+    }
+  });
+
+  // Tools List Routes
+  app.get("/api/tools", async (req, res) => {
+    try {
+      const familyGroupId = req.query.familyGroupId as string;
+      const items = await storage.getAllToolsItems(familyGroupId);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tools list" });
+    }
+  });
+
+  app.post("/api/tools", async (req, res) => {
+    try {
+      const validatedData = insertToolsListSchema.parse(req.body);
+      const item = await storage.createToolsItem(validatedData);
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('tools', 'create', item);
+      
+      res.status(201).json(item);
+    } catch (error) {
+      if (error instanceof Error && error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid tools item data", errors: error });
+      }
+      res.status(500).json({ message: "Failed to create tools item" });
+    }
+  });
+
+  app.put("/api/tools/:id", async (req, res) => {
+    try {
+      const validatedData = insertToolsListSchema.partial().parse(req.body);
+      const item = await storage.updateToolsItem(req.params.id, validatedData);
+      if (!item) {
+        return res.status(404).json({ message: "Tools item not found" });
+      }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('tools', 'update', item);
+      
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update tools item" });
+    }
+  });
+
+  app.delete("/api/tools/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteToolsItem(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Tools item not found" });
+      }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('tools', 'delete', { id: req.params.id });
+      
+      res.json({ message: "Tools item deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete tools item" });
+    }
+  });
+
+  app.patch("/api/tools/:id/toggle", async (req, res) => {
+    try {
+      const item = await storage.toggleToolsItemAvailable(req.params.id);
+      if (!item) {
+        return res.status(404).json({ message: "Tools item not found" });
+      }
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('tools', 'toggle', item);
+      
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to toggle tools item" });
+    }
+  });
+
+  app.delete("/api/tools/available", async (req, res) => {
+    try {
+      const familyGroupId = req.query.familyGroupId as string;
+      await storage.clearAvailableToolsItems(familyGroupId);
+      
+      // Broadcast the change to all connected clients
+      broadcastChange('tools', 'clear-available', {});
+      
+      res.json({ message: "Available tools cleared successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to clear available tools" });
     }
   });
 
