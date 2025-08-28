@@ -33,7 +33,7 @@ export function Header() {
           </div>
 
           {/* Navigation - Show on medium and larger screens */}
-          <nav className="flex items-center space-x-6 rtl:space-x-reverse">
+          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
             <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors font-medium" data-testid="nav-recipes">
               {t('recipes')}
             </Link>
@@ -67,7 +67,7 @@ export function Header() {
             {/* Mobile Menu Button - Show on smaller screens */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="sm:hidden" data-testid="mobile-menu">
+                <Button variant="ghost" size="icon" className="md:hidden" data-testid="mobile-menu">
                   <Menu className="text-foreground" />
                 </Button>
               </SheetTrigger>

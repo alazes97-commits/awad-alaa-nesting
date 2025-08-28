@@ -138,7 +138,8 @@ export class DatabaseStorage implements IStorage {
     if (familyGroupId) {
       return await db.select().from(recipes).where(eq(recipes.familyGroupId, familyGroupId));
     }
-    return await db.select().from(recipes).where(eq(recipes.familyGroupId, sql`NULL`));
+    // Return all recipes when no family group is specified
+    return await db.select().from(recipes);
   }
 
   async getRecipeById(id: string): Promise<Recipe | undefined> {
@@ -149,16 +150,7 @@ export class DatabaseStorage implements IStorage {
   async createRecipe(recipeData: InsertRecipe): Promise<Recipe> {
     const [recipe] = await db
       .insert(recipes)
-      .values({
-        ...recipeData,
-        nameEn: recipeData.nameEn || '',
-        nameAr: recipeData.nameAr || '',
-        instructionsEn: recipeData.instructionsEn || '',
-        instructionsAr: recipeData.instructionsAr || '',
-        country: recipeData.country || '',
-        servingTemperature: recipeData.servingTemperature || '',
-        category: recipeData.category || ''
-      })
+      .values(recipeData)
       .returning();
     return recipe;
   }
@@ -179,22 +171,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchRecipes(query: string, familyGroupId?: string): Promise<Recipe[]> {
-    const baseCondition = familyGroupId 
-      ? eq(recipes.familyGroupId, familyGroupId)
-      : eq(recipes.familyGroupId, sql`NULL`);
+    const conditions = [
+      or(
+        like(recipes.nameEn, `%${query}%`),
+        like(recipes.nameAr, `%${query}%`),
+        like(recipes.descriptionEn, `%${query}%`),
+        like(recipes.descriptionAr, `%${query}%`)
+      )
+    ];
+    
+    if (familyGroupId) {
+      conditions.push(eq(recipes.familyGroupId, familyGroupId));
+    }
     
     return await db
       .select()
       .from(recipes)
-      .where(and(
-        baseCondition,
-        or(
-          like(recipes.nameEn, `%${query}%`),
-          like(recipes.nameAr, `%${query}%`),
-          like(recipes.descriptionEn, `%${query}%`),
-          like(recipes.descriptionAr, `%${query}%`)
-        )
-      ));
+      .where(and(...conditions));
   }
 
   async filterRecipes(filters: any, familyGroupId?: string): Promise<Recipe[]> {
@@ -202,8 +195,6 @@ export class DatabaseStorage implements IStorage {
     
     if (familyGroupId) {
       conditions.push(eq(recipes.familyGroupId, familyGroupId));
-    } else {
-      conditions.push(eq(recipes.familyGroupId, sql`NULL`));
     }
     
     if (filters.country) conditions.push(eq(recipes.country, filters.country));

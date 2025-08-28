@@ -31,7 +31,7 @@ export function Home() {
   }>({});
 
   const { data: recipes = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/recipes', searchQuery, filters, user?.familyGroupId],
+    queryKey: ['/api/recipes', searchQuery, filters],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
