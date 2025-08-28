@@ -67,7 +67,7 @@ export function Header() {
             {/* Mobile Menu Button - Show on smaller screens */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" data-testid="mobile-menu">
+                <Button variant="ghost" size="icon" className="sm:hidden" data-testid="mobile-menu">
                   <Menu className="text-foreground" />
                 </Button>
               </SheetTrigger>
@@ -113,7 +113,7 @@ export function Header() {
                     data-testid="mobile-nav-pantry"
                   >
                     <Package className="h-5 w-5" />
-                    {t('pantry')}
+                    Pantry
                   </Link>
                   <Link 
                     href="/tools" 

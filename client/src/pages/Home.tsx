@@ -39,7 +39,8 @@ export function Home() {
       if (filters.servingTemperature) params.append('servingTemperature', filters.servingTemperature);
       if (filters.category) params.append('category', filters.category);
       if (filters.rating) params.append('rating', filters.rating.toString());
-      if (user?.familyGroupId) params.append('familyGroupId', user.familyGroupId);
+      // Remove family group filter for now to see all recipes
+      // if (user?.familyGroupId) params.append('familyGroupId', user.familyGroupId);
       
       const queryString = params.toString();
       const url = `/api/recipes${queryString ? `?${queryString}` : ''}`;
@@ -48,10 +49,15 @@ export function Home() {
       if (!response.ok) {
         throw new Error('Failed to fetch recipes');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('✅ Recipes fetched:', data.length, 'recipes');
+      console.log('📋 Recipe data:', data);
+      return data;
     },
-    enabled: !!user, // Only fetch when user is loaded
+    enabled: true, // Always fetch recipes
   });
+
+  console.log('🏠 Home component render - recipes:', recipes?.length || 0);
 
   const handleViewRecipe = (recipe: Recipe) => {
     console.log('🔄 Opening recipe modal for:', recipe.nameEn || recipe.nameAr);
