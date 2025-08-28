@@ -152,9 +152,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           >
             {recipeName || 'Untitled Recipe'}
           </h3>
-          <div className="text-yellow-500 text-sm">
-            {'★'.repeat(recipe.rating || 0)}
-          </div>
+          <StarRating recipe={recipe} size="sm" interactive={false} />
         </div>
         
         <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-3">

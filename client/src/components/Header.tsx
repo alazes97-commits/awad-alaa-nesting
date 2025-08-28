@@ -32,8 +32,8 @@ export function Header() {
             </div>
           </div>
 
-          {/* Navigation - Show on medium and larger screens */}
-          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
+          {/* Navigation - Show on large screens only */}
+          <nav className="hidden lg:flex items-center space-x-6 rtl:space-x-reverse">
             <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors font-medium" data-testid="nav-recipes">
               {t('recipes')}
             </Link>
@@ -56,22 +56,24 @@ export function Header() {
 
           {/* Sync, Language Toggle and User Menu */}
           <div className="flex items-center space-x-4 rtl:space-x-reverse">
-            <SyncStatus />
-            <LanguageToggle />
-
-            {/* User Profile */}
-            <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center cursor-pointer" data-testid="user-profile">
-              <User className="text-accent-foreground text-sm" />
+            <div className="hidden lg:flex items-center space-x-4">
+              <SyncStatus />
+              <LanguageToggle />
+              {/* User Profile */}
+              <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center cursor-pointer" data-testid="user-profile">
+                <User className="text-accent-foreground text-sm" />
+              </div>
             </div>
 
-            {/* Mobile Menu Button - Always visible with better styling */}
+            {/* Mobile Menu Button - Always visible */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <button 
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200" 
+                  className="lg:hidden p-3 bg-orange-500 hover:bg-orange-600 text-white rounded-md shadow-md" 
                   data-testid="mobile-menu"
+                  style={{ minWidth: '48px', minHeight: '48px' }}
                 >
-                  <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+                  <Menu className="w-6 h-6" />
                 </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
