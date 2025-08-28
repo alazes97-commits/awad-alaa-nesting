@@ -54,6 +54,7 @@ export function Home() {
   });
 
   const handleViewRecipe = (recipe: Recipe) => {
+    console.log('Opening recipe modal for:', recipe.nameEn || recipe.nameAr);
     setSelectedRecipe(recipe);
     setIsDetailModalOpen(true);
   };

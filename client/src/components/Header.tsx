@@ -17,7 +17,7 @@ export function Header() {
   const appName = familyGroup ? `${familyGroup.name} Nesting` : "Family Nesting";
 
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 shadow-sm w-full">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
@@ -26,29 +26,29 @@ export function Header() {
               <Utensils className="text-primary-foreground text-lg" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-black dark:text-white">
                 {appName}
               </h1>
             </div>
           </div>
 
           {/* Navigation - Show on medium and larger screens */}
-          <nav className="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
-            <Link href="/" className="text-foreground hover:text-primary transition-colors" data-testid="nav-recipes">
+          <nav className="flex items-center space-x-6 rtl:space-x-reverse">
+            <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors font-medium" data-testid="nav-recipes">
               {t('recipes')}
             </Link>
-            <Link href="/add" className="text-foreground hover:text-primary transition-colors" data-testid="nav-add-recipe">
+            <Link href="/add" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors font-medium" data-testid="nav-add-recipe">
               {t('addRecipe')}
             </Link>
-            <Link href="/shopping" className="text-foreground hover:text-primary transition-colors flex items-center gap-1" data-testid="nav-shopping-list">
+            <Link href="/shopping" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors flex items-center gap-1 font-medium" data-testid="nav-shopping-list">
               <ShoppingCart className="h-4 w-4" />
               {t('shoppingList')}
             </Link>
-            <Link href="/pantry" className="text-foreground hover:text-primary transition-colors flex items-center gap-1" data-testid="nav-pantry">
+            <Link href="/pantry" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors flex items-center gap-1 font-medium" data-testid="nav-pantry">
               <Package className="h-4 w-4" />
               {t('pantry')}
             </Link>
-            <Link href="/tools" className="text-foreground hover:text-primary transition-colors flex items-center gap-1" data-testid="nav-tools">
+            <Link href="/tools" className="text-gray-700 dark:text-gray-300 hover:text-orange-600 transition-colors flex items-center gap-1 font-medium" data-testid="nav-tools">
               <Utensils className="h-4 w-4" />
               Tools
             </Link>

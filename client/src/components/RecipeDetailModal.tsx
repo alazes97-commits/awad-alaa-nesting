@@ -127,7 +127,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto" data-testid="recipe-detail-modal">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto z-[100]" data-testid="recipe-detail-modal">
         <DialogHeader className="sticky top-0 bg-card border-b border-border pb-4">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-2xl font-bold" data-testid="recipe-detail-title">
