@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
+import { MultiRecipeSelector } from '@/components/MultiRecipeSelector';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Heart, Globe, Flame, Leaf, ShoppingCart, Trash2 } from 'lucide-react';
@@ -26,45 +27,57 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   const { user } = useUser();
   const { toast } = useToast();
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
 
   const addToShoppingListMutation = useMutation({
-    mutationFn: async () => {
-      const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
-      const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
-      const processedIngredients = processIngredients(ingredients || []);
+    mutationFn: async (selectedLinkIds?: number[]) => {
+      const linksToProcess = selectedLinkIds || [0]; // Default to main recipe
       
-      // Add ingredients to shopping list
-      const ingredientPromises = processedIngredients.map(ingredient => 
-        apiRequest('POST', '/api/shopping', {
-          itemNameEn: language === 'en' ? ingredient.name : '',
-          itemNameAr: language === 'ar' ? ingredient.name : '',
-          quantity: `${ingredient.amount} ${ingredient.unit}`,
-          unit: ingredient.unit,
-          category: ingredient.category,
-          notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
-          recipeId: recipe.id,
-          familyGroupId: user?.familyGroupId || null,
-          createdBy: user?.id || null
-        })
-      );
+      const allPromises: Promise<any>[] = [];
       
-      // Add tools to tools list
-      const toolPromises = (tools || [])
-        .filter(tool => tool && tool.trim() !== '')
-        .map(tool => 
-          apiRequest('POST', '/api/tools', {
-            toolNameEn: language === 'en' ? tool : '',
-            toolNameAr: language === 'ar' ? tool : '',
-            category: 'cooking',
-            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
-            isAvailable: false,
+      for (const linkId of linksToProcess) {
+        // For now, use main recipe data for all links (can be enhanced later)
+        const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
+        const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
+        const processedIngredients = processIngredients(ingredients || []);
+        
+        const linkTitle = linkId === 0 ? 'Main Recipe' : recipe.additionalLinks?.[linkId - 1]?.title || `Link ${linkId}`;
+        
+        // Add ingredients to shopping list
+        const ingredientPromises = processedIngredients.map(ingredient => 
+          apiRequest('POST', '/api/shopping', {
+            itemNameEn: language === 'en' ? ingredient.name : '',
+            itemNameAr: language === 'ar' ? ingredient.name : '',
+            quantity: `${ingredient.amount} ${ingredient.unit}`,
+            unit: ingredient.unit,
+            category: ingredient.category,
+            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
             recipeId: recipe.id,
             familyGroupId: user?.familyGroupId || null,
             createdBy: user?.id || null
           })
         );
+        
+        // Add tools to tools list
+        const toolPromises = (tools || [])
+          .filter(tool => tool && tool.trim() !== '')
+          .map(tool => 
+            apiRequest('POST', '/api/tools', {
+              toolNameEn: language === 'en' ? tool : '',
+              toolNameAr: language === 'ar' ? tool : '',
+              category: 'cooking',
+              notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
+              isAvailable: false,
+              recipeId: recipe.id,
+              familyGroupId: user?.familyGroupId || null,
+              createdBy: user?.id || null
+            })
+          );
+        
+        allPromises.push(...ingredientPromises, ...toolPromises);
+      }
       
-      await Promise.all([...ingredientPromises, ...toolPromises]);
+      await Promise.all(allPromises);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
@@ -84,7 +97,18 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   });
 
   const handleAddToShoppingList = () => {
-    addToShoppingListMutation.mutate();
+    // Check if recipe has additional links
+    const hasMultipleLinks = recipe.additionalLinks && recipe.additionalLinks.length > 0;
+    
+    if (hasMultipleLinks) {
+      setIsMultiSelectorOpen(true);
+    } else {
+      addToShoppingListMutation.mutate([0]); // Add main recipe only
+    }
+  };
+
+  const handleMultipleLinksAdd = (selectedLinkIds: number[]) => {
+    addToShoppingListMutation.mutate(selectedLinkIds);
   };
 
 
@@ -207,6 +231,14 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           <ShareButton recipe={recipe} />
         </div>
       </CardContent>
+
+      {/* Multi Recipe Selector Modal */}
+      <MultiRecipeSelector
+        recipe={recipe}
+        isOpen={isMultiSelectorOpen}
+        onClose={() => setIsMultiSelectorOpen(false)}
+        onAddToShoppingList={handleMultipleLinksAdd}
+      />
     </Card>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUser } from '@/hooks/useUser';
 import { useMutation } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
+import { MultiRecipeSelector } from '@/components/MultiRecipeSelector';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, Heart, Globe, Flame, Leaf, Clock, Check, ShoppingCart } from 'lucide-react';
 import { Recipe } from '@shared/schema';
@@ -24,49 +26,61 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   const { t, language } = useLanguage();
   const { user } = useUser();
   const { toast } = useToast();
+  const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
 
   if (!recipe) {
     return null;
   }
 
   const addToShoppingListMutation = useMutation({
-    mutationFn: async () => {
-      const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
-      const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
-      const processedIngredients = processIngredients(ingredients || []);
+    mutationFn: async (selectedLinkIds?: number[]) => {
+      const linksToProcess = selectedLinkIds || [0]; // Default to main recipe
       
-      // Add ingredients to shopping list
-      const ingredientPromises = processedIngredients.map(ingredient => 
-        apiRequest('POST', '/api/shopping', {
-          itemNameEn: language === 'en' ? ingredient.name : '',
-          itemNameAr: language === 'ar' ? ingredient.name : '',
-          quantity: `${ingredient.amount} ${ingredient.unit}`,
-          unit: ingredient.unit,
-          category: ingredient.category,
-          notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
-          recipeId: recipe.id,
-          familyGroupId: user?.familyGroupId || null,
-          createdBy: user?.id || null
-        })
-      );
+      const allPromises: Promise<any>[] = [];
       
-      // Add tools to tools list
-      const toolPromises = (tools || [])
-        .filter(tool => tool && tool.trim() !== '')
-        .map(tool => 
-          apiRequest('POST', '/api/tools', {
-            toolNameEn: language === 'en' ? tool : '',
-            toolNameAr: language === 'ar' ? tool : '',
-            category: 'cooking',
-            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn}`,
-            isAvailable: false,
+      for (const linkId of linksToProcess) {
+        // For now, use main recipe data for all links (can be enhanced later)
+        const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
+        const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
+        const processedIngredients = processIngredients(ingredients || []);
+        
+        const linkTitle = linkId === 0 ? 'Main Recipe' : recipe.additionalLinks?.[linkId - 1]?.title || `Link ${linkId}`;
+        
+        // Add ingredients to shopping list
+        const ingredientPromises = processedIngredients.map(ingredient => 
+          apiRequest('POST', '/api/shopping', {
+            itemNameEn: language === 'en' ? ingredient.name : '',
+            itemNameAr: language === 'ar' ? ingredient.name : '',
+            quantity: `${ingredient.amount} ${ingredient.unit}`,
+            unit: ingredient.unit,
+            category: ingredient.category,
+            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
             recipeId: recipe.id,
             familyGroupId: user?.familyGroupId || null,
             createdBy: user?.id || null
           })
         );
+        
+        // Add tools to tools list
+        const toolPromises = (tools || [])
+          .filter(tool => tool && tool.trim() !== '')
+          .map(tool => 
+            apiRequest('POST', '/api/tools', {
+              toolNameEn: language === 'en' ? tool : '',
+              toolNameAr: language === 'ar' ? tool : '',
+              category: 'cooking',
+              notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
+              isAvailable: false,
+              recipeId: recipe.id,
+              familyGroupId: user?.familyGroupId || null,
+              createdBy: user?.id || null
+            })
+          );
+        
+        allPromises.push(...ingredientPromises, ...toolPromises);
+      }
       
-      await Promise.all([...ingredientPromises, ...toolPromises]);
+      await Promise.all(allPromises);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
@@ -86,7 +100,18 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   });
 
   const handleAddToShoppingList = () => {
-    addToShoppingListMutation.mutate();
+    // Check if recipe has additional links
+    const hasMultipleLinks = recipe.additionalLinks && recipe.additionalLinks.length > 0;
+    
+    if (hasMultipleLinks) {
+      setIsMultiSelectorOpen(true);
+    } else {
+      addToShoppingListMutation.mutate([0]); // Add main recipe only
+    }
+  };
+
+  const handleMultipleLinksAdd = (selectedLinkIds: number[]) => {
+    addToShoppingListMutation.mutate(selectedLinkIds);
   };
 
 
@@ -267,16 +292,20 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {ingredients && ingredients.map((ingredient, index) => (
-                  <li 
-                    key={index} 
-                    className="flex justify-between items-center p-2 bg-muted rounded border"
-                    data-testid={`ingredient-${index}`}
-                  >
-                    <span>{ingredient.name}</span>
-                    <span className="font-medium">{ingredient.amount}</span>
-                  </li>
-                ))}
+                {ingredients && ingredients.length > 0 ? (
+                  ingredients.map((ingredient, index) => (
+                    <li 
+                      key={index} 
+                      className="flex justify-between items-center p-2 bg-muted rounded border"
+                      data-testid={`ingredient-${index}`}
+                    >
+                      <span>{typeof ingredient === 'string' ? ingredient : (ingredient as any)?.name || String(ingredient)}</span>
+                      <span className="font-medium">{typeof ingredient === 'object' && (ingredient as any)?.amount ? (ingredient as any).amount : ''}</span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-muted-foreground italic">No ingredients available</li>
+                )}
               </ul>
             </CardContent>
           </Card>
@@ -290,9 +319,13 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
-                <p className="whitespace-pre-wrap" data-testid="recipe-instructions">
-                  {recipeInstructions}
-                </p>
+                {recipeInstructions ? (
+                  <p className="whitespace-pre-wrap" data-testid="recipe-instructions">
+                    {recipeInstructions}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground italic">No instructions available</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -327,6 +360,14 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             </Card>
           </div>
         )}
+
+        {/* Multi Recipe Selector Modal */}
+        <MultiRecipeSelector
+          recipe={recipe}
+          isOpen={isMultiSelectorOpen}
+          onClose={() => setIsMultiSelectorOpen(false)}
+          onAddToShoppingList={handleMultipleLinksAdd}
+        />
       </DialogContent>
     </Dialog>
   );

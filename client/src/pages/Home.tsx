@@ -94,7 +94,7 @@ export function Home() {
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-4 py-6">
         <EmailSync />
-        <SearchFilters onSearch={handleSearch} onFilter={handleFilter} />
+        <SearchFilters onSearch={handleSearch} onFilter={handleFilter} currentFilters={filters} />
 
         {/* Add Recipe Button */}
         <div className="flex justify-between items-center mb-6">

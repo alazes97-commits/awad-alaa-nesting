@@ -82,7 +82,7 @@ export function Header() {
                   <Link 
                     href="/" 
                     className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setTimeout(() => setIsMobileMenuOpen(false), 100)}
                     data-testid="mobile-nav-recipes"
                   >
                     <Utensils className="h-5 w-5" />
@@ -91,7 +91,7 @@ export function Header() {
                   <Link 
                     href="/add" 
                     className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setTimeout(() => setIsMobileMenuOpen(false), 100)}
                     data-testid="mobile-nav-add-recipe"
                   >
                     <User className="h-5 w-5" />
@@ -100,7 +100,7 @@ export function Header() {
                   <Link 
                     href="/shopping" 
                     className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setTimeout(() => setIsMobileMenuOpen(false), 100)}
                     data-testid="mobile-nav-shopping-list"
                   >
                     <ShoppingCart className="h-5 w-5" />
@@ -109,7 +109,7 @@ export function Header() {
                   <Link 
                     href="/pantry" 
                     className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setTimeout(() => setIsMobileMenuOpen(false), 100)}
                     data-testid="mobile-nav-pantry"
                   >
                     <Package className="h-5 w-5" />
@@ -118,7 +118,7 @@ export function Header() {
                   <Link 
                     href="/tools" 
                     className="flex items-center gap-3 p-3 text-foreground hover:bg-accent rounded-lg transition-colors" 
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setTimeout(() => setIsMobileMenuOpen(false), 100)}
                     data-testid="mobile-nav-tools"
                   >
                     <Utensils className="h-5 w-5" />

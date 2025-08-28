@@ -13,9 +13,15 @@ interface SearchFiltersProps {
     category?: string;
     rating?: number;
   }) => void;
+  currentFilters?: {
+    country?: string;
+    servingTemperature?: string;
+    category?: string;
+    rating?: number;
+  };
 }
 
-export function SearchFilters({ onSearch, onFilter }: SearchFiltersProps) {
+export function SearchFilters({ onSearch, onFilter, currentFilters = {} }: SearchFiltersProps) {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -111,7 +117,7 @@ export function SearchFilters({ onSearch, onFilter }: SearchFiltersProps) {
       {/* Quick Filters */}
       <div className="flex flex-wrap gap-2 mt-4">
         <Button
-          variant="default"
+          variant={!currentFilters.country && !currentFilters.servingTemperature && !currentFilters.category && !currentFilters.rating ? "default" : "secondary"}
           size="sm"
           className="rounded-full"
           onClick={() => {
@@ -125,7 +131,7 @@ export function SearchFilters({ onSearch, onFilter }: SearchFiltersProps) {
           {t('all')}
         </Button>
         <Button
-          variant="secondary"
+          variant={currentFilters.rating === 5 ? "default" : "secondary"}
           size="sm"
           className="rounded-full"
           onClick={() => onFilter({ rating: 5 })}
@@ -136,7 +142,7 @@ export function SearchFilters({ onSearch, onFilter }: SearchFiltersProps) {
         {categories.map((category) => (
           <Button
             key={category}
-            variant="secondary"
+            variant={currentFilters.category === category ? "default" : "secondary"}
             size="sm"
             className="rounded-full"
             onClick={() => handleFilterChange('category', category)}
