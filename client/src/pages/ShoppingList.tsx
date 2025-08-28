@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Header } from '@/components/Header';
 import { useUser } from '@/hooks/useUser';
 import { Plus, Trash2, ShoppingCart, Check } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -184,6 +185,8 @@ export function ShoppingList() {
 
   return (
     <div className={`h-full bg-gray-50 dark:bg-gray-900 ${isRtl ? 'rtl' : 'ltr'} flex flex-col overflow-hidden`}>
+      <Header />
+      
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-4 py-8">
         <div className="mb-8 flex items-center justify-between">

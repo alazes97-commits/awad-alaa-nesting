@@ -227,6 +227,8 @@ export function AddRecipe() {
 
   return (
     <div className="h-full bg-background flex flex-col overflow-hidden">
+      <Header />
+      
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-4 py-6">
           <div className="max-w-4xl mx-auto">
