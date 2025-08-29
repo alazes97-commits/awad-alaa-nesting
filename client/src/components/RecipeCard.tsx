@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { StarRating } from '@/components/StarRating';
 import { ShareButton } from '@/components/ShareButton';
 import { MultiRecipeSelector } from '@/components/MultiRecipeSelector';
+import { ServingAdjustmentDialog } from '@/components/ServingAdjustmentDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Heart, Globe, Flame, Leaf, ShoppingCart, Trash2 } from 'lucide-react';
+import { Globe, Flame, Leaf, ShoppingCart, Trash2 } from 'lucide-react';
 import { Recipe } from '@shared/schema';
 import { processIngredients } from '@/utils/ingredientUtils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -25,19 +25,19 @@ interface RecipeCardProps {
 export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps) {
   const { t, language } = useLanguage();
   const { user } = useUser();
-  const { toast } = useToast();
-  const [isFavorited, setIsFavorited] = useState(false);
   const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
+  const [isServingDialogOpen, setIsServingDialogOpen] = useState(false);
+  const [pendingSelectedRecipes, setPendingSelectedRecipes] = useState<number[]>([]);
 
   console.log('RecipeCard rendering for:', recipe?.nameEn || recipe?.nameAr, recipe);
 
   const addToShoppingListMutation = useMutation({
-    mutationFn: async (selectedRecipes?: number[]) => {
-      const response = await apiRequest('POST', '/api/shopping/recipe', {
-        body: JSON.stringify({ 
-          recipeId: recipe.id, 
-          selectedRecipes: selectedRecipes || [0] // Default to main recipe
-        }),
+    mutationFn: async ({ selectedRecipes, people, days }: { selectedRecipes: number[], people: number, days: number }) => {
+      const response = await apiRequest('POST', '/api/shopping/recipe', { 
+        recipeId: recipe.id, 
+        selectedRecipes,
+        people,
+        days
       });
       return response.json();
     },
@@ -54,12 +54,20 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
     if (hasMultipleRecipes) {
       setIsMultiSelectorOpen(true);
     } else {
-      addToShoppingListMutation.mutate([0]); // Add main recipe only
+      // Open serving adjustment dialog for main recipe
+      setPendingSelectedRecipes([0]);
+      setIsServingDialogOpen(true);
     }
   };
 
   const handleMultipleRecipesAdd = (selectedRecipes: number[]) => {
-    addToShoppingListMutation.mutate(selectedRecipes);
+    // Open serving adjustment dialog with selected recipes
+    setPendingSelectedRecipes(selectedRecipes);
+    setIsServingDialogOpen(true);
+  };
+
+  const handleServingConfirm = (people: number, days: number) => {
+    addToShoppingListMutation.mutate({ selectedRecipes: pendingSelectedRecipes, people, days });
   };
 
 
@@ -153,13 +161,6 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
             <ShoppingCart className="w-4 h-4 text-gray-600 dark:text-gray-300" />
           </button>
           <button
-            className="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-            onClick={() => setIsFavorited(!isFavorited)}
-            data-testid={`favorite-recipe-${recipe.id}`}
-          >
-            <Heart className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
-          </button>
-          <button
             className="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900 transition-colors duration-200"
             onClick={() => {
               if (confirm(`Delete recipe: ${recipeName || 'this recipe'}?`)) {
@@ -181,6 +182,17 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           isOpen={isMultiSelectorOpen}
           onClose={() => setIsMultiSelectorOpen(false)}
           onAddToShoppingList={handleMultipleRecipesAdd}
+        />
+      )}
+
+      {/* Serving Adjustment Dialog */}
+      {isServingDialogOpen && (
+        <ServingAdjustmentDialog
+          recipe={recipe}
+          selectedRecipes={pendingSelectedRecipes}
+          isOpen={isServingDialogOpen}
+          onClose={() => setIsServingDialogOpen(false)}
+          onConfirm={handleServingConfirm}
         />
       )}
     </div>

@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/Header';
 import { Plus, Trash2, Package, AlertTriangle, Calendar, MapPin } from 'lucide-react';
@@ -34,7 +33,6 @@ type FormData = z.infer<typeof formSchema>;
 
 export function Pantry() {
   const { language, t, isRtl } = useLanguage();
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm<FormData>({
@@ -85,19 +83,10 @@ export function Pantry() {
       queryClient.invalidateQueries({ queryKey: ['/api/pantry'] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/expiring-soon'] });
-      toast({
-        title: t('success'),
-        description: t('itemAdded'),
-      });
       form.reset();
       setIsDialogOpen(false);
     },
     onError: () => {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToAddItem'),
-        variant: 'destructive',
-      });
     },
   });
 
@@ -111,10 +100,6 @@ export function Pantry() {
       queryClient.invalidateQueries({ queryKey: ['/api/pantry'] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/expiring-soon'] });
-      toast({
-        title: t('success'),
-        description: t('itemDeleted'),
-      });
     },
   });
 

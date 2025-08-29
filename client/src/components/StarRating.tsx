@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Recipe } from '@shared/schema';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ interface StarRatingProps {
 
 export function StarRating({ recipe, onRatingUpdate, interactive = false, size = 'md' }: StarRatingProps) {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const [rating, setRating] = useState(recipe.rating || 0);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -40,16 +38,7 @@ export function StarRating({ recipe, onRatingUpdate, interactive = false, size =
         onRatingUpdate(newRating);
       }
       
-      toast({
-        title: t('ratingUpdated'),
-        description: t('ratingUpdatedSuccessfully'),
-      });
     } catch (error) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToUpdateRating'),
-        variant: 'destructive',
-      });
     } finally {
       setIsUpdating(false);
     }

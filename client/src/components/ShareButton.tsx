@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Share, Copy, Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Recipe } from '@shared/schema';
 
@@ -13,7 +12,6 @@ interface ShareButtonProps {
 
 export function ShareButton({ recipe, variant = 'outline', size = 'icon' }: ShareButtonProps) {
   const { t, language } = useLanguage();
-  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const recipeName = language === 'ar' ? recipe.nameAr : recipe.nameEn;
@@ -30,10 +28,6 @@ export function ShareButton({ recipe, variant = 'outline', size = 'icon' }: Shar
       // Try Web Share API first (mobile devices)
       if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
-        toast({
-          title: t('shared'),
-          description: t('recipeSharedSuccessfully'),
-        });
       } else {
         // Fallback to clipboard
         const shareText = `${shareData.title}\n${shareData.text}\n${shareData.url}`;
@@ -41,10 +35,7 @@ export function ShareButton({ recipe, variant = 'outline', size = 'icon' }: Shar
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
         
-        toast({
-          title: t('copied'),
-          description: t('linkCopiedToClipboard'),
-        });
+
       }
     } catch (error) {
       // Final fallback - try copying just the URL
@@ -53,16 +44,8 @@ export function ShareButton({ recipe, variant = 'outline', size = 'icon' }: Shar
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
         
-        toast({
-          title: t('copied'),
-          description: t('linkCopiedToClipboard'),
-        });
+
       } catch (clipboardError) {
-        toast({
-          title: t('errorOccurred'),
-          description: t('failedToShare'),
-          variant: 'destructive',
-        });
       }
     }
   };

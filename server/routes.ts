@@ -291,10 +291,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add recipe ingredients and tools to shopping list
+  // Add recipe ingredients and tools to shopping list with serving adjustments
   app.post("/api/shopping/recipe", async (req, res) => {
     try {
-      const { recipeId, selectedRecipes = [0] } = req.body; // Default to main recipe (index 0)
+      const { recipeId, selectedRecipes = [0], people = 4, days = 1 } = req.body;
       const recipe = await storage.getRecipeById(recipeId);
       
       if (!recipe) {
@@ -303,34 +303,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const itemsAdded = [];
       const toolsAdded = [];
+      let overallMultiplier = 1;
+      let baseOriginalServings = recipe.servings || 4;
 
       // Process each selected recipe (main + additional recipes)
       for (const recipeIndex of selectedRecipes) {
-        let currentIngredients, currentTools;
+        let currentIngredients, currentTools, originalServings = 4;
         
         if (recipeIndex === 0) {
           // Main recipe
           currentIngredients = recipe.ingredientsEn;
           currentTools = recipe.toolsEn;
+          originalServings = recipe.servings || 4;
         } else {
           // Additional recipe (recipeIndex - 1 because array is 0-indexed)
           const additionalRecipe = recipe.additionalRecipes?.[recipeIndex - 1];
           if (additionalRecipe) {
             currentIngredients = additionalRecipe.ingredientsEn;
             currentTools = additionalRecipe.toolsEn;
+            originalServings = additionalRecipe.servings || 4;
           }
         }
 
-        // Add ingredients to shopping list
+        // Calculate serving multiplier
+        const totalServingsNeeded = people * days;
+        const multiplier = totalServingsNeeded / originalServings;
+        overallMultiplier = multiplier; // Store for response
+
+        // Add ingredients to shopping list with adjusted quantities
         if (currentIngredients) {
           for (const ingredient of currentIngredients) {
             if (ingredient.name.trim()) {
+              // Parse amount and multiply by serving adjustment
+              const amountStr = ingredient.amount || '1';
+              const amountMatch = amountStr.match(/^(\d+\.?\d*)\s*(.*)$/);
+              let adjustedAmount = amountStr;
+              
+              if (amountMatch) {
+                const amount = parseFloat(amountMatch[1]);
+                const unit = amountMatch[2].trim();
+                const adjustedValue = (amount * multiplier).toFixed(1).replace(/\.0$/, '');
+                adjustedAmount = `${adjustedValue} ${unit}`;
+              }
+
               const shoppingItem = await storage.createShoppingItem({
                 itemNameEn: ingredient.name,
                 itemNameAr: ingredient.name, // Using English name for both for now
-                quantity: ingredient.amount || '1',
+                quantity: adjustedAmount,
                 unit: 'piece',
                 category: 'other',
+                notes: `For ${people} people × ${days} days (×${multiplier.toFixed(1)})`,
                 familyGroupId: recipe.familyGroupId
               });
               itemsAdded.push(shoppingItem);
@@ -338,7 +360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Add tools to tools list
+        // Add tools to tools list (tools don't need multiplying)
         if (currentTools) {
           for (const tool of currentTools) {
             if (tool.trim()) {
@@ -346,6 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 toolNameEn: tool,
                 toolNameAr: tool, // Using English name for both for now
                 isAvailable: false,
+                notes: `For recipe serving ${people} people`,
                 familyGroupId: recipe.familyGroupId
               });
               toolsAdded.push(toolItem);
@@ -365,7 +388,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         message: "Recipe added to lists", 
         itemsAdded: itemsAdded.length,
-        toolsAdded: toolsAdded.length 
+        toolsAdded: toolsAdded.length,
+        multiplier: overallMultiplier.toFixed(1),
+        originalServings: baseOriginalServings,
+        adjustedFor: `${people} people × ${days} days`
       });
     } catch (error) {
       console.error('Error adding recipe to shopping list:', error);

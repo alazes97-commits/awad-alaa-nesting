@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/Header';
 import { useUser } from '@/hooks/useUser';
@@ -33,7 +32,6 @@ type FormData = z.infer<typeof formSchema>;
 export function ShoppingList() {
   const { language, t, isRtl } = useLanguage();
   const { user } = useUser();
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grouped' | 'list'>('grouped');
 
@@ -73,11 +71,6 @@ export function ShoppingList() {
       setIsDialogOpen(false);
     },
     onError: () => {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToAddItem'),
-        variant: 'destructive',
-      });
     },
   });
 

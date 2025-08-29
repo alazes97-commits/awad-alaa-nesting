@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -13,7 +12,6 @@ interface ImageUploadProps {
 
 export function ImageUpload({ images, onImagesChange, maxImages = 5 }: ImageUploadProps) {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -22,11 +20,6 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5 }: ImageUplo
     if (files.length === 0) return;
 
     if (images.length + files.length > maxImages) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('maxImagesExceeded'),
-        variant: 'destructive',
-      });
       return;
     }
 
@@ -37,21 +30,11 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5 }: ImageUplo
       for (const file of files) {
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          toast({
-            title: t('errorOccurred'),
-            description: t('pleaseSelectImageFiles'),
-            variant: 'destructive',
-          });
           continue;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          toast({
-            title: t('errorOccurred'),
-            description: t('fileTooLarge'),
-            variant: 'destructive',
-          });
           continue;
         }
 
@@ -63,17 +46,8 @@ export function ImageUpload({ images, onImagesChange, maxImages = 5 }: ImageUplo
       onImagesChange([...images, ...newImageUrls]);
       
       if (newImageUrls.length > 0) {
-        toast({
-          title: t('success'),
-          description: t('imagesUploadedSuccessfully'),
-        });
       }
     } catch (error) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToUploadImages'),
-        variant: 'destructive',
-      });
     } finally {
       setUploading(false);
       if (fileInputRef.current) {

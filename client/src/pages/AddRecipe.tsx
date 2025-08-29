@@ -14,7 +14,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2, ArrowLeft } from 'lucide-react';
 import { insertRecipeSchema } from '@shared/schema';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -74,7 +73,6 @@ type FormData = z.infer<typeof formSchema>;
 export function AddRecipe() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const { user } = useUser();
   const [searchParams] = useState(new URLSearchParams(window.location.search));
   const editId = searchParams.get('edit');
@@ -134,18 +132,9 @@ export function AddRecipe() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/recipes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/recipes', '', {}, user?.familyGroupId] });
-      toast({
-        title: t('recipeSaved'),
-        description: 'Recipe created successfully',
-      });
       setLocation('/');
     },
     onError: () => {
-      toast({
-        title: t('errorOccurred'),
-        description: 'Failed to create recipe',
-        variant: 'destructive',
-      });
     },
   });
 
@@ -155,18 +144,9 @@ export function AddRecipe() {
       queryClient.invalidateQueries({ queryKey: ['/api/recipes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/recipes', editId] });
       queryClient.invalidateQueries({ queryKey: ['/api/recipes', '', {}, user?.familyGroupId] });
-      toast({
-        title: t('recipeSaved'),
-        description: 'Recipe updated successfully',
-      });
       setLocation('/');
     },
     onError: () => {
-      toast({
-        title: t('errorOccurred'),
-        description: 'Failed to update recipe',
-        variant: 'destructive',
-      });
     },
   });
 
@@ -178,7 +158,7 @@ export function AddRecipe() {
       ingredientsAr: (data.ingredientsAr || []).filter(ing => ing.name?.trim() && ing.amount?.trim()),
       toolsEn: (data.toolsEn || []).filter(tool => tool?.trim()),
       toolsAr: (data.toolsAr || []).filter(tool => tool?.trim()),
-      additionalLinks: (data.additionalLinks || []).filter(link => link.title?.trim() && link.url?.trim()),
+      additionalRecipes: (data.additionalRecipes || []),
       // Add family group and user info for new recipes
       ...(user && !editId && {
         familyGroupId: user.familyGroupId || null,

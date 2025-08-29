@@ -3,13 +3,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { RefreshCw, Check, AlertCircle, Wifi, WifiOff } from 'lucide-react';
 
 export function SyncStatus() {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const { isConnected, lastSynced, reconnect } = useWebSocket();
   const [autoSync, setAutoSync] = useState(true);
 
@@ -24,15 +22,7 @@ export function SyncStatus() {
   const performManualSync = () => {
     if (!isConnected) {
       reconnect();
-      toast({
-        title: t('reconnecting'),
-        description: t('attemptingToReconnect'),
-      });
     } else {
-      toast({
-        title: t('alreadyConnected'),
-        description: t('realTimeSyncActive'),
-      });
     }
   };
 
@@ -41,10 +31,6 @@ export function SyncStatus() {
     setAutoSync(newAutoSync);
     localStorage.setItem('autoSync', JSON.stringify(newAutoSync));
     
-    toast({
-      title: newAutoSync ? t('autoSyncEnabled') : t('autoSyncDisabled'),
-      description: newAutoSync ? t('dataWillSyncAutomatically') : t('manualSyncOnly'),
-    });
   };
 
   const formatLastSynced = (date: Date) => {

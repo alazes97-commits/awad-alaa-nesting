@@ -10,7 +10,6 @@ import { RecipeDetailModal } from '@/components/RecipeDetailModal';
 import { EmailSync } from '@/components/EmailSync';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import { Recipe } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
@@ -19,7 +18,6 @@ export function Home() {
   const { t } = useLanguage();
   const { user } = useUser();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,17 +72,8 @@ export function Home() {
   const handleDeleteRecipe = async (id: string) => {
     try {
       await apiRequest('DELETE', `/api/recipes/${id}`);
-      toast({
-        title: t('recipeDeleted'),
-        description: t('recipeDeletedSuccessfully'),
-      });
       refetch();
     } catch (error) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToDeleteRecipe'),
-        variant: 'destructive',
-      });
     }
   };
 

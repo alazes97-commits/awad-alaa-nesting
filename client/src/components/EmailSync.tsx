@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +25,6 @@ interface User {
 
 export function EmailSync() {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [familyGroup, setFamilyGroup] = useState<FamilyGroup | null>(null);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
@@ -97,11 +95,6 @@ export function EmailSync() {
 
   const createUser = async () => {
     if (!email || !name) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('pleaseEnterEmailAndName'),
-        variant: 'destructive',
-      });
       return;
     }
 
@@ -112,16 +105,7 @@ export function EmailSync() {
       setUser(userData);
       localStorage.setItem('userEmail', email);
       
-      toast({
-        title: t('success'),
-        description: t('userCreatedSuccessfully'),
-      });
     } catch (error) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToCreateUser'),
-        variant: 'destructive',
-      });
     } finally {
       setIsLoading(false);
     }
@@ -146,16 +130,7 @@ export function EmailSync() {
       await loadFamilyGroup(group.id);
       setIsSetupModalOpen(false);
       
-      toast({
-        title: t('success'),
-        description: t('familyGroupCreated'),
-      });
     } catch (error) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToCreateFamilyGroup'),
-        variant: 'destructive',
-      });
     } finally {
       setIsLoading(false);
     }
@@ -176,16 +151,7 @@ export function EmailSync() {
       await loadFamilyGroup(group.id);
       setIsSetupModalOpen(false);
       
-      toast({
-        title: t('success'),
-        description: t('joinedFamilyGroup'),
-      });
     } catch (error) {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToJoinFamilyGroup'),
-        variant: 'destructive',
-      });
     } finally {
       setIsLoading(false);
     }
@@ -194,10 +160,6 @@ export function EmailSync() {
   const copyInviteCode = () => {
     if (familyGroup?.inviteCode) {
       navigator.clipboard.writeText(familyGroup.inviteCode);
-      toast({
-        title: t('copied'),
-        description: t('inviteCodeCopied'),
-      });
     }
   };
 
