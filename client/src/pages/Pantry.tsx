@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useUser } from '@/hooks/useUser';
 import { Header } from '@/components/Header';
 import { Plus, Trash2, Package, AlertTriangle, Calendar, MapPin } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -33,6 +34,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export function Pantry() {
   const { language, t, isRtl } = useLanguage();
+  const { user } = useUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm<FormData>({
@@ -52,7 +54,14 @@ export function Pantry() {
 
   // Fetch pantry items
   const { data: pantryItems = [], isLoading } = useQuery({
-    queryKey: ['/api/pantry'],
+    queryKey: ['/api/pantry', user?.familyGroupId],
+    queryFn: () => {
+      const url = user?.familyGroupId 
+        ? `/api/pantry?familyGroupId=${user.familyGroupId}`
+        : '/api/pantry?familyGroupId=';
+      return fetch(url).then(res => res.json());
+    },
+    enabled: !!user,
   });
 
   // Fetch low stock items
@@ -80,7 +89,7 @@ export function Pantry() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/pantry'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/pantry', user?.familyGroupId] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/expiring-soon'] });
       form.reset();
@@ -97,7 +106,7 @@ export function Pantry() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/pantry'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/pantry', user?.familyGroupId] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry/expiring-soon'] });
     },

@@ -451,7 +451,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Pantry Routes
   app.get("/api/pantry", async (req, res) => {
     try {
-      const items = await storage.getAllPantryItems();
+      const familyGroupId = req.query.familyGroupId as string;
+      const items = await storage.getAllPantryItems(familyGroupId);
       res.json(items);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch pantry items" });

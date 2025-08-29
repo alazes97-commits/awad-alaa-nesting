@@ -103,12 +103,12 @@ export function useWebSocket() {
   };
 
   const handleShoppingUpdate = (message: WebSocketMessage) => {
-    // Invalidate shopping list cache
+    // Invalidate all shopping list queries (with and without family group ID)
     queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
   };
 
   const handlePantryUpdate = (message: WebSocketMessage) => {
-    // Invalidate pantry cache
+    // Invalidate all pantry queries (with and without family group ID)
     queryClient.invalidateQueries({ queryKey: ['/api/pantry'] });
     queryClient.invalidateQueries({ queryKey: ['/api/pantry/low-stock'] });
     queryClient.invalidateQueries({ queryKey: ['/api/pantry/expiring-soon'] });

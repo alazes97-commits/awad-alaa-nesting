@@ -150,7 +150,7 @@ export class DatabaseStorage implements IStorage {
   async createRecipe(recipeData: InsertRecipe): Promise<Recipe> {
     const [recipe] = await db
       .insert(recipes)
-      .values([recipeData])
+      .values(recipeData)
       .returning();
     return recipe;
   }
@@ -617,6 +617,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createToolsItem(itemData: InsertToolsListItem): Promise<ToolsListItem> {
+    // Check if similar tool already exists (same name and family group)
+    const existingTools = await db.select()
+      .from(toolsList)
+      .where(
+        and(
+          or(
+            and(
+              sql`LOWER(TRIM(${toolsList.toolNameEn})) = LOWER(TRIM(${itemData.toolNameEn}))`,
+              sql`LENGTH(TRIM(${itemData.toolNameEn})) > 0`
+            ),
+            and(
+              sql`LOWER(TRIM(${toolsList.toolNameAr})) = LOWER(TRIM(${itemData.toolNameAr}))`,
+              sql`LENGTH(TRIM(${itemData.toolNameAr || ''})) > 0`
+            )
+          ),
+          itemData.familyGroupId 
+            ? eq(toolsList.familyGroupId, itemData.familyGroupId)
+            : isNull(toolsList.familyGroupId)
+        )
+      );
+
+    if (existingTools.length > 0) {
+      // Tool already exists, return the existing one
+      return existingTools[0];
+    }
+
+    // Create new tool
     const [item] = await db
       .insert(toolsList)
       .values(itemData)
