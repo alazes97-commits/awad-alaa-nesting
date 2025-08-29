@@ -604,11 +604,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Tools list operations
-  async getAllToolsItems(familyGroupId?: string): Promise<ToolsListItem[]> {
+  async getAllToolsItems(familyGroupId?: string): Promise<(ToolsListItem & { recipeCount: number })[]> {
+    let toolsItems: ToolsListItem[];
     if (familyGroupId && familyGroupId !== '') {
-      return await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
+      toolsItems = await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
+    } else {
+      toolsItems = await db.select().from(toolsList).where(isNull(toolsList.familyGroupId));
     }
-    return await db.select().from(toolsList).where(isNull(toolsList.familyGroupId));
+
+    // Count how many recipes each tool appears in
+    const toolsWithCount = await Promise.all(
+      toolsItems.map(async (tool) => {
+        const count = await this.countToolInRecipes(tool.toolNameEn, tool.toolNameAr, familyGroupId);
+        return { ...tool, recipeCount: count };
+      })
+    );
+
+    return toolsWithCount;
+  }
+
+  private async countToolInRecipes(toolNameEn: string, toolNameAr: string, familyGroupId?: string): Promise<number> {
+    // Get all recipes for the family group
+    const allRecipes = await this.getAllRecipes(familyGroupId);
+    
+    let count = 0;
+    
+    for (const recipe of allRecipes) {
+      // Check if tool appears in main recipe
+      const toolsEn = Array.isArray(recipe.toolsEn) ? recipe.toolsEn : [];
+      const toolsAr = Array.isArray(recipe.toolsAr) ? recipe.toolsAr : [];
+      
+      if (toolsEn.some(t => t.toLowerCase().trim() === toolNameEn.toLowerCase().trim()) ||
+          toolsAr.some(t => t.toLowerCase().trim() === toolNameAr.toLowerCase().trim())) {
+        count++;
+        continue; // Don't double count for the same recipe
+      }
+      
+      // Check in additional recipes
+      const additionalRecipes = Array.isArray(recipe.additionalRecipes) ? recipe.additionalRecipes : [];
+      for (const additionalRecipe of additionalRecipes) {
+        const addToolsEn = Array.isArray(additionalRecipe.toolsEn) ? additionalRecipe.toolsEn : [];
+        const addToolsAr = Array.isArray(additionalRecipe.toolsAr) ? additionalRecipe.toolsAr : [];
+        
+        if (addToolsEn.some(t => t.toLowerCase().trim() === toolNameEn.toLowerCase().trim()) ||
+            addToolsAr.some(t => t.toLowerCase().trim() === toolNameAr.toLowerCase().trim())) {
+          count++;
+          break; // Found in this recipe, move to next recipe
+        }
+      }
+    }
+    
+    return count;
   }
 
   async getToolsItemById(id: string): Promise<ToolsListItem | undefined> {

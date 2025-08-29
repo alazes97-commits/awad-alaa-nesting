@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -256,9 +257,16 @@ export function Tools() {
                             disabled={toggleMutation.isPending}
                           />
                           <div>
-                            <h4 className="font-medium">
-                              {language === 'ar' ? tool.toolNameAr : tool.toolNameEn}
-                            </h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium">
+                                {language === 'ar' ? tool.toolNameAr : tool.toolNameEn}
+                              </h4>
+                              {tool.recipeCount > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Used in {tool.recipeCount} recipe{tool.recipeCount !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
                             {tool.category && (
                               <p className="text-sm text-gray-500 capitalize">{tool.category}</p>
                             )}
@@ -309,9 +317,16 @@ export function Tools() {
                             disabled={toggleMutation.isPending}
                           />
                           <div>
-                            <h4 className="font-medium line-through text-gray-500">
-                              {language === 'ar' ? tool.toolNameAr : tool.toolNameEn}
-                            </h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium line-through text-gray-500">
+                                {language === 'ar' ? tool.toolNameAr : tool.toolNameEn}
+                              </h4>
+                              {tool.recipeCount > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Used in {tool.recipeCount} recipe{tool.recipeCount !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
                             {tool.category && (
                               <p className="text-sm text-gray-500 capitalize">{tool.category}</p>
                             )}
