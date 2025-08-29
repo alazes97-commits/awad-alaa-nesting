@@ -129,6 +129,13 @@ export function Header() {
                     <Utensils className="h-5 w-5" />
                     Tools
                   </Link>
+                  
+                  {/* Language Toggle for Mobile */}
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex items-center justify-center">
+                      <LanguageToggle />
+                    </div>
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>
