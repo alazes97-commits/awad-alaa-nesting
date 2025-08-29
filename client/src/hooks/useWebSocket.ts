@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { queryClient } from '@/lib/queryClient';
 
@@ -12,7 +11,6 @@ interface WebSocketMessage {
 
 export function useWebSocket() {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
@@ -75,12 +73,7 @@ export function useWebSocket() {
     // Handle different types of updates
     switch (message.type) {
       case 'system':
-        if (message.action === 'connected') {
-          toast({
-            title: t('syncSuccessful'),
-            description: t('connectedToRealTimeSync'),
-          });
-        }
+        // System messages don't need user notification
         break;
 
       case 'recipes':
@@ -95,6 +88,10 @@ export function useWebSocket() {
         handlePantryUpdate(message);
         break;
 
+      case 'tools':
+        handleToolsUpdate(message);
+        break;
+
       default:
         console.log('Unknown message type:', message.type);
     }
@@ -103,65 +100,11 @@ export function useWebSocket() {
   const handleRecipeUpdate = (message: WebSocketMessage) => {
     // Invalidate recipes cache to refetch data
     queryClient.invalidateQueries({ queryKey: ['/api/recipes'] });
-    
-    switch (message.action) {
-      case 'create':
-        toast({
-          title: t('recipeAdded'),
-          description: t('newRecipeAvailable'),
-        });
-        break;
-      case 'update':
-        toast({
-          title: t('recipeUpdated'),
-          description: t('recipeHasBeenModified'),
-        });
-        break;
-      case 'delete':
-        toast({
-          title: t('recipeDeleted'),
-          description: t('recipeHasBeenRemoved'),
-        });
-        break;
-    }
   };
 
   const handleShoppingUpdate = (message: WebSocketMessage) => {
     // Invalidate shopping list cache
     queryClient.invalidateQueries({ queryKey: ['/api/shopping'] });
-    
-    switch (message.action) {
-      case 'create':
-        toast({
-          title: t('itemAdded'),
-          description: t('newShoppingItemAdded'),
-        });
-        break;
-      case 'update':
-        toast({
-          title: t('itemUpdated'),
-          description: t('shoppingItemModified'),
-        });
-        break;
-      case 'delete':
-        toast({
-          title: t('itemDeleted'),
-          description: t('shoppingItemRemoved'),
-        });
-        break;
-      case 'toggle':
-        toast({
-          title: t('itemToggled'),
-          description: t('shoppingItemStatusChanged'),
-        });
-        break;
-      case 'clear-completed':
-        toast({
-          title: t('completedItemsCleared'),
-          description: t('allCompletedItemsRemoved'),
-        });
-        break;
-    }
   };
 
   const handlePantryUpdate = (message: WebSocketMessage) => {
@@ -169,27 +112,11 @@ export function useWebSocket() {
     queryClient.invalidateQueries({ queryKey: ['/api/pantry'] });
     queryClient.invalidateQueries({ queryKey: ['/api/pantry/low-stock'] });
     queryClient.invalidateQueries({ queryKey: ['/api/pantry/expiring-soon'] });
-    
-    switch (message.action) {
-      case 'create':
-        toast({
-          title: t('itemAdded'),
-          description: t('newPantryItemAdded'),
-        });
-        break;
-      case 'update':
-        toast({
-          title: t('itemUpdated'),
-          description: t('pantryItemModified'),
-        });
-        break;
-      case 'delete':
-        toast({
-          title: t('itemDeleted'),
-          description: t('pantryItemRemoved'),
-        });
-        break;
-    }
+  };
+
+  const handleToolsUpdate = (message: WebSocketMessage) => {
+    // Invalidate tools cache
+    queryClient.invalidateQueries({ queryKey: ['/api/tools'] });
   };
 
   useEffect(() => {

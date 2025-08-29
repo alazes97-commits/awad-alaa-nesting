@@ -8,6 +8,7 @@ import { MultiRecipeSelector } from '@/components/MultiRecipeSelector';
 import { Clock, Globe, Flame, Leaf, Edit, Plus, ShoppingCart, List } from 'lucide-react';
 import { Recipe } from '@shared/schema';
 import { useState } from 'react';
+import { ServingAdjustmentDialog } from '@/components/ServingAdjustmentDialog';
 
 interface RecipeDetailModalProps {
   recipe: Recipe | null;
@@ -19,6 +20,8 @@ interface RecipeDetailModalProps {
 export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDetailModalProps) {
   const { t, language } = useLanguage();
   const [isMultiSelectorOpen, setIsMultiSelectorOpen] = useState(false);
+  const [isServingAdjustmentOpen, setIsServingAdjustmentOpen] = useState(false);
+  const [adjustedServings, setAdjustedServings] = useState<{people: number, days: number} | null>(null);
 
   console.log('🔍 RecipeDetailModal render:', {
     isOpen,
@@ -59,6 +62,33 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
   const ingredients = language === 'ar' ? recipe.ingredientsAr || recipe.ingredientsEn : recipe.ingredientsEn || recipe.ingredientsAr;
   const instructions = language === 'ar' ? recipe.instructionsAr || recipe.instructionsEn : recipe.instructionsEn || recipe.instructionsAr;
   const tools = language === 'ar' ? recipe.toolsAr || recipe.toolsEn : recipe.toolsEn || recipe.toolsAr;
+
+  // Calculate adjusted ingredients based on serving adjustment
+  const getAdjustedIngredients = () => {
+    if (!adjustedServings || !ingredients) return ingredients || [];
+    
+    const originalServings = recipe.servings || 4;
+    const totalServingsNeeded = adjustedServings.people * adjustedServings.days;
+    const multiplier = totalServingsNeeded / originalServings;
+    
+    return ingredients.map(ingredient => ({
+      ...ingredient,
+      amount: adjustIngredientAmount(ingredient.amount, multiplier)
+    }));
+  };
+
+  const adjustIngredientAmount = (amount: string, multiplier: number): string => {
+    // Try to extract number from amount string
+    const numberMatch = amount.match(/([0-9.]+)/);
+    if (numberMatch) {
+      const originalAmount = parseFloat(numberMatch[1]);
+      const adjustedAmount = originalAmount * multiplier;
+      return amount.replace(numberMatch[1], adjustedAmount.toString());
+    }
+    return amount; // Return unchanged if no number found
+  };
+
+  const displayIngredients = getAdjustedIngredients();
 
   const imageUrl = recipe.images && recipe.images.length > 0 
     ? recipe.images[0] 
@@ -170,14 +200,39 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
           </div>
 
           {/* Ingredients */}
-          {ingredients && ingredients.length > 0 && (
+          {displayIngredients && displayIngredients.length > 0 && (
             <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                <List className="w-5 h-5" />
-                Ingredients
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <List className="w-5 h-5" />
+                  Ingredients
+                </h3>
+                <div className="flex items-center gap-2">
+                  {adjustedServings && (
+                    <span className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                      For {adjustedServings.people} people × {adjustedServings.days} days
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsServingAdjustmentOpen(true)}
+                  >
+                    Adjust Servings
+                  </Button>
+                  {adjustedServings && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAdjustedServings(null)}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
+              </div>
               <div className="grid sm:grid-cols-2 gap-2">
-                {ingredients.map((ingredient, index) => (
+                {displayIngredients.map((ingredient, index) => (
                   <div 
                     key={index}
                     className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -238,28 +293,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
             </div>
           )}
 
-          {/* Additional Links */}
-          {recipe.additionalLinks && recipe.additionalLinks.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Additional Recipe Links</h3>
-              <div className="space-y-2">
-                {recipe.additionalLinks.map((link, index) => (
-                  <a 
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block p-3 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200"
-                  >
-                    <div className="font-medium text-blue-800 dark:text-blue-200">{link.title}</div>
-                    {link.description && (
-                      <div className="text-sm text-blue-600 dark:text-blue-300">{link.description}</div>
-                    )}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Additional Recipes - removed additionalLinks section since it doesn't exist in schema */}
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-wrap gap-4">
@@ -289,6 +323,20 @@ export function RecipeDetailModal({ recipe, isOpen, onClose, onEdit }: RecipeDet
           isOpen={isMultiSelectorOpen}
           onClose={() => setIsMultiSelectorOpen(false)}
           onAddToShoppingList={() => {}}
+        />
+      )}
+
+      {/* Serving Adjustment Dialog */}
+      {isServingAdjustmentOpen && (
+        <ServingAdjustmentDialog
+          recipe={recipe}
+          isOpen={isServingAdjustmentOpen}
+          onClose={() => setIsServingAdjustmentOpen(false)}
+          selectedRecipes={[0]}
+          onConfirm={(people, days) => {
+            setAdjustedServings({ people, days });
+            setIsServingAdjustmentOpen(false);
+          }}
         />
       )}
     </div>

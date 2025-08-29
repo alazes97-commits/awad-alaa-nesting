@@ -51,9 +51,10 @@ export function ShoppingList() {
   const { data: shoppingItems = [], isLoading } = useQuery({
     queryKey: ['/api/shopping', user?.familyGroupId],
     queryFn: () => {
+      // In demo mode (no user), fetch items with null familyGroupId
       const url = user?.familyGroupId 
         ? `/api/shopping?familyGroupId=${user.familyGroupId}`
-        : '/api/shopping';
+        : '/api/shopping?familyGroupId=';
       return fetch(url).then(res => res.json());
     },
     enabled: !!user, // Only fetch when user is loaded

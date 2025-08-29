@@ -207,10 +207,15 @@ export class DatabaseStorage implements IStorage {
 
   // Shopping list operations
   async getAllShoppingItems(familyGroupId?: string): Promise<ShoppingListItem[]> {
-    if (familyGroupId) {
-      return await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, familyGroupId));
+    console.log('🛒 getAllShoppingItems called with familyGroupId:', familyGroupId);
+    if (familyGroupId && familyGroupId !== '') {
+      const items = await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, familyGroupId));
+      console.log('🛒 Found items for familyGroupId:', items.length);
+      return items;
     }
-    return await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, sql`NULL`));
+    const items = await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, sql`NULL`));
+    console.log('🛒 Found items with NULL familyGroupId:', items.length);
+    return items;
   }
 
   async getShoppingItemById(id: string): Promise<ShoppingListItem | undefined> {
@@ -605,10 +610,15 @@ export class DatabaseStorage implements IStorage {
 
   // Tools list operations
   async getAllToolsItems(familyGroupId?: string): Promise<ToolsListItem[]> {
-    if (familyGroupId) {
-      return await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
+    console.log('🔧 getAllToolsItems called with familyGroupId:', familyGroupId);
+    if (familyGroupId && familyGroupId !== '') {
+      const items = await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
+      console.log('🔧 Found tools for familyGroupId:', items.length);
+      return items;
     }
-    return await db.select().from(toolsList).where(eq(toolsList.familyGroupId, sql`NULL`));
+    const items = await db.select().from(toolsList).where(eq(toolsList.familyGroupId, sql`NULL`));
+    console.log('🔧 Found tools with NULL familyGroupId:', items.length);
+    return items;
   }
 
   async getToolsItemById(id: string): Promise<ToolsListItem | undefined> {

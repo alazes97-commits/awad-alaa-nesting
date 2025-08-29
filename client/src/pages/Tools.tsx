@@ -44,7 +44,13 @@ export function Tools() {
   // Fetch tools list
   const { data: toolsItems = [], isLoading } = useQuery({
     queryKey: ['/api/tools', user?.familyGroupId],
-    enabled: !!user
+    queryFn: () => {
+      // In demo mode (no user), fetch items with null familyGroupId
+      const url = user?.familyGroupId 
+        ? `/api/tools?familyGroupId=${user.familyGroupId}`
+        : '/api/tools?familyGroupId=';
+      return fetch(url).then(res => res.json());
+    },
   });
 
   const toolsArray = Array.isArray(toolsItems) ? toolsItems : [];
