@@ -19,7 +19,7 @@ import {
   type InsertFamilyGroup
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, like, or, sql } from "drizzle-orm";
+import { eq, and, like, or, sql, isNull } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -207,15 +207,10 @@ export class DatabaseStorage implements IStorage {
 
   // Shopping list operations
   async getAllShoppingItems(familyGroupId?: string): Promise<ShoppingListItem[]> {
-    console.log('🛒 getAllShoppingItems called with familyGroupId:', familyGroupId);
     if (familyGroupId && familyGroupId !== '') {
-      const items = await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, familyGroupId));
-      console.log('🛒 Found items for familyGroupId:', items.length);
-      return items;
+      return await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, familyGroupId));
     }
-    const items = await db.select().from(shoppingList).where(eq(shoppingList.familyGroupId, sql`NULL`));
-    console.log('🛒 Found items with NULL familyGroupId:', items.length);
-    return items;
+    return await db.select().from(shoppingList).where(isNull(shoppingList.familyGroupId));
   }
 
   async getShoppingItemById(id: string): Promise<ShoppingListItem | undefined> {
@@ -475,10 +470,10 @@ export class DatabaseStorage implements IStorage {
 
   // Pantry operations
   async getAllPantryItems(familyGroupId?: string): Promise<PantryItem[]> {
-    if (familyGroupId) {
+    if (familyGroupId && familyGroupId !== '') {
       return await db.select().from(pantry).where(eq(pantry.familyGroupId, familyGroupId));
     }
-    return await db.select().from(pantry).where(eq(pantry.familyGroupId, sql`NULL`));
+    return await db.select().from(pantry).where(isNull(pantry.familyGroupId));
   }
 
   async getPantryItemById(id: string): Promise<PantryItem | undefined> {
@@ -610,15 +605,10 @@ export class DatabaseStorage implements IStorage {
 
   // Tools list operations
   async getAllToolsItems(familyGroupId?: string): Promise<ToolsListItem[]> {
-    console.log('🔧 getAllToolsItems called with familyGroupId:', familyGroupId);
     if (familyGroupId && familyGroupId !== '') {
-      const items = await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
-      console.log('🔧 Found tools for familyGroupId:', items.length);
-      return items;
+      return await db.select().from(toolsList).where(eq(toolsList.familyGroupId, familyGroupId));
     }
-    const items = await db.select().from(toolsList).where(eq(toolsList.familyGroupId, sql`NULL`));
-    console.log('🔧 Found tools with NULL familyGroupId:', items.length);
-    return items;
+    return await db.select().from(toolsList).where(isNull(toolsList.familyGroupId));
   }
 
   async getToolsItemById(id: string): Promise<ToolsListItem | undefined> {
