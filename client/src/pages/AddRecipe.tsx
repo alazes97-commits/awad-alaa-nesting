@@ -43,10 +43,27 @@ const formSchema = z.object({
   })).optional().default([{ name: '', amount: '' }]),
   toolsEn: z.array(z.string()).optional().default(['']) ,
   toolsAr: z.array(z.string()).optional().default(['']) ,
-  additionalLinks: z.array(z.object({
-    title: z.string().optional().default(''),
-    url: z.string().optional().default(''),
-    description: z.string().optional().default(''),
+  additionalRecipes: z.array(z.object({
+    nameEn: z.string().optional().default(''),
+    nameAr: z.string().optional().default(''),
+    country: z.string().optional().default(''),
+    servingTemperature: z.string().optional().default(''),
+    category: z.string().optional().default(''),
+    instructionsEn: z.string().optional().default(''),
+    instructionsAr: z.string().optional().default(''),
+    ingredientsEn: z.array(z.object({
+      name: z.string().optional().default(''),
+      amount: z.string().optional().default(''),
+    })).optional().default([{ name: '', amount: '' }]),
+    ingredientsAr: z.array(z.object({
+      name: z.string().optional().default(''),
+      amount: z.string().optional().default(''),
+    })).optional().default([{ name: '', amount: '' }]),
+    toolsEn: z.array(z.string()).optional().default(['']),
+    toolsAr: z.array(z.string()).optional().default(['']),
+    servings: z.number().min(1).optional().default(4),
+    videoUrl: z.string().optional().default(''),
+    notes: z.string().optional().default(''),
   })).optional().default([]),
   rating: z.number().min(0).max(5).optional().default(0),
   servings: z.number().min(1).optional().default(4),
@@ -82,7 +99,7 @@ export function AddRecipe() {
       instructionsAr: '',
       toolsEn: [''],
       toolsAr: [''],
-      additionalLinks: [],
+      additionalRecipes: [],
       rating: 0,
       servings: 4,
     },
@@ -216,14 +233,53 @@ export function AddRecipe() {
     }
   };
 
-  const addLink = () => {
-    const current = form.getValues('additionalLinks');
-    form.setValue('additionalLinks', [...current, { title: '', url: '', description: '' }]);
+  const addRecipe = () => {
+    const current = form.getValues('additionalRecipes');
+    form.setValue('additionalRecipes', [...current, {
+      nameEn: '',
+      nameAr: '',
+      country: '',
+      servingTemperature: '',
+      category: '',
+      instructionsEn: '',
+      instructionsAr: '',
+      ingredientsEn: [{ name: '', amount: '' }],
+      ingredientsAr: [{ name: '', amount: '' }],
+      toolsEn: [''],
+      toolsAr: [''],
+      servings: 4,
+      videoUrl: '',
+      notes: ''
+    }]);
   };
 
-  const removeLink = (index: number) => {
-    const current = form.getValues('additionalLinks');
-    form.setValue('additionalLinks', current.filter((_, i) => i !== index));
+  const removeRecipe = (index: number) => {
+    const current = form.getValues('additionalRecipes');
+    form.setValue('additionalRecipes', current.filter((_, i) => i !== index));
+  };
+
+  const addIngredientToRecipe = (recipeIndex: number, language: 'en' | 'ar') => {
+    const fieldName = language === 'en' ? 'ingredientsEn' : 'ingredientsAr';
+    const current = form.getValues(`additionalRecipes.${recipeIndex}.${fieldName}`);
+    form.setValue(`additionalRecipes.${recipeIndex}.${fieldName}`, [...current, { name: '', amount: '' }]);
+  };
+
+  const removeIngredientFromRecipe = (recipeIndex: number, ingredientIndex: number, language: 'en' | 'ar') => {
+    const fieldName = language === 'en' ? 'ingredientsEn' : 'ingredientsAr';
+    const current = form.getValues(`additionalRecipes.${recipeIndex}.${fieldName}`);
+    form.setValue(`additionalRecipes.${recipeIndex}.${fieldName}`, current.filter((_, i) => i !== ingredientIndex));
+  };
+
+  const addToolToRecipe = (recipeIndex: number, language: 'en' | 'ar') => {
+    const fieldName = language === 'en' ? 'toolsEn' : 'toolsAr';
+    const current = form.getValues(`additionalRecipes.${recipeIndex}.${fieldName}`);
+    form.setValue(`additionalRecipes.${recipeIndex}.${fieldName}`, [...current, '']);
+  };
+
+  const removeToolFromRecipe = (recipeIndex: number, toolIndex: number, language: 'en' | 'ar') => {
+    const fieldName = language === 'en' ? 'toolsEn' : 'toolsAr';
+    const current = form.getValues(`additionalRecipes.${recipeIndex}.${fieldName}`);
+    form.setValue(`additionalRecipes.${recipeIndex}.${fieldName}`, current.filter((_, i) => i !== toolIndex));
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
@@ -716,88 +772,413 @@ export function AddRecipe() {
                     </Button>
                   </div>
 
-                  {/* Additional Links */}
+                  {/* Additional Recipes */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">{t('additionalLinks')}</h3>
+                    <h3 className="text-lg font-semibold mb-4">Additional Recipes</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Add alternative recipes or video tutorials for the same dish
+                      Add alternative recipes, side dishes, or variations for the same meal
                     </p>
-                    {form.watch('additionalLinks').map((_, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg">
-                        <FormField
-                          control={form.control}
-                          name={`additionalLinks.${index}.title`}
-                          render={({ field }) => (
-                            <FormItem>
-                              {index === 0 && <FormLabel>Link Title</FormLabel>}
-                              <FormControl>
-                                <Input
-                                  placeholder="Alternative recipe"
-                                  {...field}
-                                  data-testid={`link-title-${index}`}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`additionalLinks.${index}.url`}
-                          render={({ field }) => (
-                            <FormItem>
-                              {index === 0 && <FormLabel>URL</FormLabel>}
-                              <FormControl>
-                                <Input
-                                  type="url"
-                                  placeholder="https://..."
-                                  {...field}
-                                  data-testid={`link-url-${index}`}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`additionalLinks.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem>
-                              {index === 0 && <FormLabel>Description</FormLabel>}
-                              <FormControl>
-                                <Input
-                                  placeholder="Video tutorial, alternative method..."
-                                  {...field}
-                                  data-testid={`link-description-${index}`}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="flex items-end">
+                    {form.watch('additionalRecipes').map((_, index) => (
+                      <Card key={index} className="p-6 mb-4">
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="text-md font-semibold">Recipe #{index + 1}</h4>
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={() => removeLink(index)}
-                            data-testid={`remove-link-${index}`}
+                            onClick={() => removeRecipe(index)}
+                            data-testid={`remove-recipe-${index}`}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                      </div>
+
+                        {/* Recipe Names */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.nameEn`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Recipe Name (English)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Alternative recipe name"
+                                    {...field}
+                                    data-testid={`recipe-name-en-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.nameAr`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>اسم الوصفة (العربية)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="اسم الوصفة البديلة"
+                                    className="text-right"
+                                    {...field}
+                                    data-testid={`recipe-name-ar-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Recipe Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.country`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Country</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Italy"
+                                    {...field}
+                                    data-testid={`recipe-country-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.servingTemperature`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Temperature</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid={`recipe-temp-${index}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="hot">Hot</SelectItem>
+                                    <SelectItem value="cold">Cold</SelectItem>
+                                    <SelectItem value="room">Room temp</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.category`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid={`recipe-category-${index}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="breakfast">Breakfast</SelectItem>
+                                    <SelectItem value="lunch">Lunch</SelectItem>
+                                    <SelectItem value="dinner">Dinner</SelectItem>
+                                    <SelectItem value="snack">Snack</SelectItem>
+                                    <SelectItem value="dessert">Dessert</SelectItem>
+                                    <SelectItem value="drink">Drink</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.servings`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Servings</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    value={field.value || ''}
+                                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                    data-testid={`recipe-servings-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.instructionsEn`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Instructions (English)</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Cooking instructions in English..."
+                                    rows={4}
+                                    {...field}
+                                    data-testid={`recipe-instructions-en-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.instructionsAr`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>التعليمات (العربية)</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="تعليمات الطبخ بالعربية..."
+                                    className="text-right"
+                                    rows={4}
+                                    {...field}
+                                    data-testid={`recipe-instructions-ar-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Video URL and Notes */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.videoUrl`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Video Tutorial</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="url"
+                                    placeholder="https://youtube.com/..."
+                                    {...field}
+                                    data-testid={`recipe-video-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`additionalRecipes.${index}.notes`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Additional notes or tips..."
+                                    {...field}
+                                    data-testid={`recipe-notes-${index}`}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Ingredients for Additional Recipe */}
+                        <div className="mb-4">
+                          <h5 className="font-medium mb-2">Ingredients</h5>
+                          {form.watch(`additionalRecipes.${index}.ingredientsEn`).map((_, ingredientIndex) => (
+                            <div key={ingredientIndex} className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-2">
+                              <FormField
+                                control={form.control}
+                                name={`additionalRecipes.${index}.ingredientsEn.${ingredientIndex}.name`}
+                                render={({ field }) => (
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Ingredient"
+                                      {...field}
+                                      data-testid={`recipe-ingredient-en-name-${index}-${ingredientIndex}`}
+                                    />
+                                  </FormControl>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`additionalRecipes.${index}.ingredientsEn.${ingredientIndex}.amount`}
+                                render={({ field }) => (
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Amount"
+                                      {...field}
+                                      data-testid={`recipe-ingredient-en-amount-${index}-${ingredientIndex}`}
+                                    />
+                                  </FormControl>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`additionalRecipes.${index}.ingredientsAr.${ingredientIndex}.name`}
+                                render={({ field }) => (
+                                  <FormControl>
+                                    <Input
+                                      placeholder="المكون"
+                                      className="text-right"
+                                      {...field}
+                                      data-testid={`recipe-ingredient-ar-name-${index}-${ingredientIndex}`}
+                                    />
+                                  </FormControl>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`additionalRecipes.${index}.ingredientsAr.${ingredientIndex}.amount`}
+                                render={({ field }) => (
+                                  <FormControl>
+                                    <Input
+                                      placeholder="الكمية"
+                                      className="text-right"
+                                      {...field}
+                                      data-testid={`recipe-ingredient-ar-amount-${index}-${ingredientIndex}`}
+                                    />
+                                  </FormControl>
+                                )}
+                              />
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removeIngredientFromRecipe(index, ingredientIndex, 'en')}
+                                  data-testid={`remove-recipe-ingredient-${index}-${ingredientIndex}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addIngredientToRecipe(index, 'en')}
+                            className="mb-4"
+                            data-testid={`add-recipe-ingredient-${index}`}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Ingredient
+                          </Button>
+                        </div>
+
+                        {/* Tools for Additional Recipe */}
+                        <div className="mb-4">
+                          <h5 className="font-medium mb-2">Tools</h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-sm font-medium mb-2">English</div>
+                              {form.watch(`additionalRecipes.${index}.toolsEn`).map((_, toolIndex) => (
+                                <div key={toolIndex} className="flex gap-2 mb-2">
+                                  <FormField
+                                    control={form.control}
+                                    name={`additionalRecipes.${index}.toolsEn.${toolIndex}`}
+                                    render={({ field }) => (
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Kitchen tool"
+                                          {...field}
+                                          data-testid={`recipe-tool-en-${index}-${toolIndex}`}
+                                        />
+                                      </FormControl>
+                                    )}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => removeToolFromRecipe(index, toolIndex, 'en')}
+                                    data-testid={`remove-recipe-tool-en-${index}-${toolIndex}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addToolToRecipe(index, 'en')}
+                                className="mb-2"
+                                data-testid={`add-recipe-tool-en-${index}`}
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Tool
+                              </Button>
+                            </div>
+
+                            <div>
+                              <div className="text-sm font-medium mb-2">العربية</div>
+                              {form.watch(`additionalRecipes.${index}.toolsAr`).map((_, toolIndex) => (
+                                <div key={toolIndex} className="flex gap-2 mb-2">
+                                  <FormField
+                                    control={form.control}
+                                    name={`additionalRecipes.${index}.toolsAr.${toolIndex}`}
+                                    render={({ field }) => (
+                                      <FormControl>
+                                        <Input
+                                          placeholder="أداة المطبخ"
+                                          className="text-right"
+                                          {...field}
+                                          data-testid={`recipe-tool-ar-${index}-${toolIndex}`}
+                                        />
+                                      </FormControl>
+                                    )}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => removeToolFromRecipe(index, toolIndex, 'ar')}
+                                    data-testid={`remove-recipe-tool-ar-${index}-${toolIndex}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addToolToRecipe(index, 'ar')}
+                                className="mb-2"
+                                data-testid={`add-recipe-tool-ar-${index}`}
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Tool
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
                     ))}
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={addLink}
+                      onClick={addRecipe}
                       className="mb-4"
-                      data-testid="add-link"
+                      data-testid="add-recipe"
                     >
                       <Plus className="w-4 h-4 mr-2 rtl:mr-0 rtl:ml-2" />
-                      {t('add')} Link
+                      Add Recipe
                     </Button>
                   </div>
 

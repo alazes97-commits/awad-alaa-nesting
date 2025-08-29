@@ -32,85 +32,34 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
   console.log('RecipeCard rendering for:', recipe?.nameEn || recipe?.nameAr, recipe);
 
   const addToShoppingListMutation = useMutation({
-    mutationFn: async (selectedLinkIds?: number[]) => {
-      const linksToProcess = selectedLinkIds || [0]; // Default to main recipe
-      
-      const allPromises: Promise<any>[] = [];
-      
-      for (const linkId of linksToProcess) {
-        // For now, use main recipe data for all links (can be enhanced later)
-        const ingredients = language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn;
-        const tools = language === 'ar' ? recipe.toolsAr : recipe.toolsEn;
-        const processedIngredients = processIngredients(ingredients || []);
-        
-        const linkTitle = linkId === 0 ? 'Main Recipe' : recipe.additionalLinks?.[linkId - 1]?.title || `Link ${linkId}`;
-        
-        // Add ingredients to shopping list
-        const ingredientPromises = processedIngredients.map(ingredient => 
-          apiRequest('POST', '/api/shopping', {
-            itemNameEn: language === 'en' ? ingredient.name : '',
-            itemNameAr: language === 'ar' ? ingredient.name : '',
-            quantity: `${ingredient.amount} ${ingredient.unit}`,
-            unit: ingredient.unit,
-            category: ingredient.category,
-            notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
-            recipeId: recipe.id,
-            familyGroupId: user?.familyGroupId || null,
-            createdBy: user?.id || null
-          })
-        );
-        
-        // Add tools to tools list
-        const toolPromises = (tools || [])
-          .filter(tool => tool && tool.trim() !== '')
-          .map(tool => 
-            apiRequest('POST', '/api/tools', {
-              toolNameEn: language === 'en' ? tool : '',
-              toolNameAr: language === 'ar' ? tool : '',
-              category: 'cooking',
-              notes: `From recipe: ${language === 'ar' ? recipe.nameAr : recipe.nameEn} (${linkTitle})`,
-              isAvailable: false,
-              recipeId: recipe.id,
-              familyGroupId: user?.familyGroupId || null,
-              createdBy: user?.id || null
-            })
-          );
-        
-        allPromises.push(...ingredientPromises, ...toolPromises);
-      }
-      
-      await Promise.all(allPromises);
+    mutationFn: async (selectedRecipes?: number[]) => {
+      const response = await apiRequest('POST', '/api/shopping/recipe', {
+        body: JSON.stringify({ 
+          recipeId: recipe.id, 
+          selectedRecipes: selectedRecipes || [0] // Default to main recipe
+        }),
+      });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
       queryClient.invalidateQueries({ queryKey: ['/api/tools', user?.familyGroupId] });
-      toast({
-        title: t('success'),
-        description: 'Ingredients and tools added to lists!',
-      });
     },
-    onError: () => {
-      toast({
-        title: t('errorOccurred'),
-        description: t('failedToAddToShoppingList'),
-        variant: 'destructive',
-      });
-    }
   });
 
   const handleAddToShoppingList = () => {
-    // Check if recipe has additional links
-    const hasMultipleLinks = recipe.additionalLinks && recipe.additionalLinks.length > 0;
+    // Check if recipe has additional recipes
+    const hasMultipleRecipes = recipe.additionalRecipes && recipe.additionalRecipes.length > 0;
     
-    if (hasMultipleLinks) {
+    if (hasMultipleRecipes) {
       setIsMultiSelectorOpen(true);
     } else {
       addToShoppingListMutation.mutate([0]); // Add main recipe only
     }
   };
 
-  const handleMultipleLinksAdd = (selectedLinkIds: number[]) => {
-    addToShoppingListMutation.mutate(selectedLinkIds);
+  const handleMultipleRecipesAdd = (selectedRecipes: number[]) => {
+    addToShoppingListMutation.mutate(selectedRecipes);
   };
 
 
@@ -195,7 +144,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
             View Recipe
           </button>
           <button
-            className="p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+            className={`p-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 ${addToShoppingListMutation.isPending ? 'bg-green-100 scale-110' : ''}`}
             onClick={handleAddToShoppingList}
             disabled={addToShoppingListMutation.isPending}
             data-testid={`add-to-shopping-${recipe.id}`}
@@ -231,7 +180,7 @@ export function RecipeCard({ recipe, onView, onEdit, onDelete }: RecipeCardProps
           recipe={recipe}
           isOpen={isMultiSelectorOpen}
           onClose={() => setIsMultiSelectorOpen(false)}
-          onAddToShoppingList={handleMultipleLinksAdd}
+          onAddToShoppingList={handleMultipleRecipesAdd}
         />
       )}
     </div>

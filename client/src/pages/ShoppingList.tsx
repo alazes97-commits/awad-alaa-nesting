@@ -69,10 +69,6 @@ export function ShoppingList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
-      toast({
-        title: t('success'),
-        description: t('itemAdded'),
-      });
       form.reset();
       setIsDialogOpen(false);
     },
@@ -104,10 +100,6 @@ export function ShoppingList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
-      toast({
-        title: t('success'),
-        description: t('itemDeleted'),
-      });
     },
   });
 
@@ -120,10 +112,7 @@ export function ShoppingList() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
       queryClient.invalidateQueries({ queryKey: ['/api/pantry', user?.familyGroupId] });
-      toast({
-        title: 'Item Bought!',
-        description: 'Item has been moved to your pantry',
-      });
+      // No more toast messages - just visual feedback
     },
   });
 
@@ -138,10 +127,6 @@ export function ShoppingList() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/shopping', user?.familyGroupId] });
-      toast({
-        title: t('success'),
-        description: t('completedItemsCleared'),
-      });
     },
   });
 
@@ -431,7 +416,7 @@ export function ShoppingList() {
                               size="sm"
                               onClick={() => markAsBoughtMutation.mutate(item.id)}
                               disabled={markAsBoughtMutation.isPending}
-                              className="text-green-600 hover:text-green-700"
+                              className={`text-green-600 hover:text-green-700 transition-all duration-300 ${markAsBoughtMutation.isPending ? 'bg-green-100 scale-110' : ''}`}
                               data-testid={`buy-item-${item.id}`}
                               title="Mark as bought and move to pantry"
                             >
@@ -494,7 +479,7 @@ export function ShoppingList() {
                               size="sm"
                               onClick={() => markAsBoughtMutation.mutate(item.id)}
                               disabled={markAsBoughtMutation.isPending}
-                              className="text-green-600 hover:text-green-700"
+                              className={`text-green-600 hover:text-green-700 transition-all duration-300 ${markAsBoughtMutation.isPending ? 'bg-green-100 scale-110' : ''}`}
                               data-testid={`buy-item-${item.id}`}
                               title="Mark as bought and move to pantry"
                             >

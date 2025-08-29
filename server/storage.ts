@@ -150,7 +150,7 @@ export class DatabaseStorage implements IStorage {
   async createRecipe(recipeData: InsertRecipe): Promise<Recipe> {
     const [recipe] = await db
       .insert(recipes)
-      .values(recipeData)
+      .values([recipeData])
       .returning();
     return recipe;
   }
@@ -533,7 +533,9 @@ export class DatabaseStorage implements IStorage {
             eq(pantry.itemNameEn, shoppingItem.itemNameEn),
             eq(pantry.itemNameAr, shoppingItem.itemNameAr),
             eq(pantry.unit, shoppingItem.unit || 'piece'),
-            eq(pantry.familyGroupId, shoppingItem.familyGroupId || '')
+            shoppingItem.familyGroupId 
+              ? eq(pantry.familyGroupId, shoppingItem.familyGroupId)
+              : eq(pantry.familyGroupId, sql`NULL`)
           )
         );
 

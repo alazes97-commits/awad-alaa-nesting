@@ -291,6 +291,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add recipe ingredients and tools to shopping list
+  app.post("/api/shopping/recipe", async (req, res) => {
+    try {
+      const { recipeId, selectedRecipes = [0] } = req.body; // Default to main recipe (index 0)
+      const recipe = await storage.getRecipeById(recipeId);
+      
+      if (!recipe) {
+        return res.status(404).json({ message: "Recipe not found" });
+      }
+
+      const itemsAdded = [];
+      const toolsAdded = [];
+
+      // Process each selected recipe (main + additional recipes)
+      for (const recipeIndex of selectedRecipes) {
+        let currentIngredients, currentTools;
+        
+        if (recipeIndex === 0) {
+          // Main recipe
+          currentIngredients = recipe.ingredientsEn;
+          currentTools = recipe.toolsEn;
+        } else {
+          // Additional recipe (recipeIndex - 1 because array is 0-indexed)
+          const additionalRecipe = recipe.additionalRecipes?.[recipeIndex - 1];
+          if (additionalRecipe) {
+            currentIngredients = additionalRecipe.ingredientsEn;
+            currentTools = additionalRecipe.toolsEn;
+          }
+        }
+
+        // Add ingredients to shopping list
+        if (currentIngredients) {
+          for (const ingredient of currentIngredients) {
+            if (ingredient.name.trim()) {
+              const shoppingItem = await storage.createShoppingItem({
+                itemNameEn: ingredient.name,
+                itemNameAr: ingredient.name, // Using English name for both for now
+                quantity: ingredient.amount || '1',
+                unit: 'piece',
+                category: 'other',
+                familyGroupId: recipe.familyGroupId
+              });
+              itemsAdded.push(shoppingItem);
+            }
+          }
+        }
+
+        // Add tools to tools list
+        if (currentTools) {
+          for (const tool of currentTools) {
+            if (tool.trim()) {
+              const toolItem = await storage.createToolsItem({
+                toolNameEn: tool,
+                toolNameAr: tool, // Using English name for both for now
+                isAvailable: false,
+                familyGroupId: recipe.familyGroupId
+              });
+              toolsAdded.push(toolItem);
+            }
+          }
+        }
+      }
+
+      // Broadcast changes
+      for (const item of itemsAdded) {
+        broadcastChange('shopping', 'create', item);
+      }
+      for (const tool of toolsAdded) {
+        broadcastChange('tools', 'create', tool);
+      }
+      
+      res.json({ 
+        message: "Recipe added to lists", 
+        itemsAdded: itemsAdded.length,
+        toolsAdded: toolsAdded.length 
+      });
+    } catch (error) {
+      console.error('Error adding recipe to shopping list:', error);
+      res.status(500).json({ message: "Failed to add recipe to shopping list" });
+    }
+  });
+
   app.patch("/api/shopping/:id/toggle", async (req, res) => {
     try {
       const item = await storage.toggleShoppingItemCompleted(req.params.id);

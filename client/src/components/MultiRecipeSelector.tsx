@@ -22,19 +22,21 @@ export function MultiRecipeSelector({ recipe, isOpen, onClose, onAddToShoppingLi
   const allRecipeVersions = [
     {
       id: 0,
-      title: 'Main Recipe',
-      titleAr: 'الوصفة الأساسية',
+      title: language === 'ar' ? recipe.nameAr : recipe.nameEn,
+      titleAr: recipe.nameAr,
       ingredients: language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn,
       tools: language === 'ar' ? recipe.toolsAr : recipe.toolsEn,
-      url: null
+      servings: recipe.servings,
+      videoUrl: recipe.videoUrl
     },
-    ...(recipe.additionalLinks || []).map((link, index) => ({
+    ...(recipe.additionalRecipes || []).map((additionalRecipe, index) => ({
       id: index + 1,
-      title: link.title,
-      titleAr: link.title, // Assuming titles are bilingual for now
-      ingredients: language === 'ar' ? recipe.ingredientsAr : recipe.ingredientsEn, // For now using same ingredients
-      tools: language === 'ar' ? recipe.toolsAr : recipe.toolsEn, // For now using same tools
-      url: link.url
+      title: language === 'ar' ? additionalRecipe.nameAr : additionalRecipe.nameEn,
+      titleAr: additionalRecipe.nameAr,
+      ingredients: language === 'ar' ? additionalRecipe.ingredientsAr : additionalRecipe.ingredientsEn,
+      tools: language === 'ar' ? additionalRecipe.toolsAr : additionalRecipe.toolsEn,
+      servings: additionalRecipe.servings,
+      videoUrl: additionalRecipe.videoUrl
     }))
   ];
 
@@ -102,12 +104,13 @@ export function MultiRecipeSelector({ recipe, isOpen, onClose, onAddToShoppingLi
                         <Badge variant="secondary">Main</Badge>
                       )}
                     </div>
-                    {version.url && (
+                    {version.videoUrl && (
                       <a 
-                        href={version.url} 
+                        href={version.videoUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-primary hover:text-primary/80"
+                        title="Watch video"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
