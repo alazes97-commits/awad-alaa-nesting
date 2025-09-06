@@ -1,0 +1,1250 @@
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecipeVault - وصفاتي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            },
+            fontFamily: {
+                sans: ["Inter", "Noto Sans Arabic", "system-ui", "sans-serif"],
+                arabic: ["Noto Sans Arabic", "system-ui", "sans-serif"],
+            }
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(35 30% 98%);
+            --foreground: hsl(25 15% 15%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(25 15% 15%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(25 15% 15%);
+            --primary: hsl(15 90% 60%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(45 25% 92%);
+            --secondary-foreground: hsl(25 15% 25%);
+            --muted: hsl(35 15% 95%);
+            --muted-foreground: hsl(25 10% 45%);
+            --accent: hsl(85 25% 55%);
+            --accent-foreground: hsl(0 0% 100%);
+            --destructive: hsl(0 70% 60%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --border: hsl(35 20% 88%);
+            --input: hsl(35 20% 88%);
+            --ring: hsl(15 90% 60%);
+            --radius: 0.75rem;
+        }
+        
+        [dir="rtl"] {
+            font-family: "Noto Sans Arabic", "Inter", system-ui, sans-serif;
+        }
+        
+        .recipe-card {
+            transition: all 0.3s ease;
+        }
+        
+        .recipe-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .star-rating {
+            display: inline-flex;
+            gap: 2px;
+        }
+        
+        .star {
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .star.filled {
+            color: #fbbf24;
+        }
+        
+        .language-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: var(--muted);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .language-toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+        
+        .language-toggle.arabic .language-toggle-slider {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <!-- @COMPONENT: AppHeader [navigation and language switcher] -->
+    <header class="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo and Brand -->
+                <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-utensils text-primary-foreground text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-foreground">
+                            <span class="ltr-content">RecipeVault</span>
+                            <span class="rtl-content hidden">وصفاتي</span>
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-6 rtl:space-x-reverse">
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">
+                        <span class="ltr-content">Recipes</span>
+                        <span class="rtl-content hidden">الوصفات</span>
+                    </a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">
+                        <span class="ltr-content">Add Recipe</span>
+                        <span class="rtl-content hidden">إضافة وصفة</span>
+                    </a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">
+                        <span class="ltr-content">Categories</span>
+                        <span class="rtl-content hidden">التصنيفات</span>
+                    </a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">
+                        <span class="ltr-content">My Favorites</span>
+                        <span class="rtl-content hidden">المفضلة</span>
+                    </a>
+                </nav>
+
+                <!-- Language Toggle and User Menu -->
+                <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                    <!-- Language Toggle -->
+                    <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                        <span class="text-sm font-medium">EN</span>
+                        <div class="language-toggle" onclick="toggleLanguage()">
+                            <div class="language-toggle-slider"></div>
+                        </div>
+                        <span class="text-sm font-medium">العربية</span>
+                    </div>
+
+                    <!-- User Profile -->
+                    <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center cursor-pointer">
+                        <i class="fas fa-user text-accent-foreground text-sm"></i>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2">
+                        <i class="fas fa-bars text-foreground"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: AppHeader -->
+
+    <!-- @COMPONENT: MainContent [main application layout] -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Search and Filter Section -->
+        <!-- @COMPONENT: SearchFilters [search and filtering interface] -->
+        <div class="bg-card rounded-lg border border-border p-6 mb-6 shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search Input -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-foreground mb-2">
+                        <span class="ltr-content">Search Recipes</span>
+                        <span class="rtl-content hidden">البحث في الوصفات</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 rtl:left-auto rtl:right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+                        <input type="text" 
+                               class="w-full pl-10 rtl:pl-4 rtl:pr-10 pr-4 py-2 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent"
+                               placeholder="Search by name, ingredients, or country...">
+                    </div>
+                </div>
+
+                <!-- Country Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">
+                        <span class="ltr-content">Country</span>
+                        <span class="rtl-content hidden">البلد</span>
+                    </label>
+                    <select class="w-full p-2 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring">
+                        <option value="">All Countries</option>
+                        <option value="egypt">Egypt - مصر</option>
+                        <option value="lebanon">Lebanon - لبنان</option>
+                        <option value="italy">Italy - إيطاليا</option>
+                        <option value="india">India - الهند</option>
+                        <option value="mexico">Mexico - المكسيك</option>
+                    </select>
+                </div>
+
+                <!-- Temperature Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">
+                        <span class="ltr-content">Serving</span>
+                        <span class="rtl-content hidden">التقديم</span>
+                    </label>
+                    <select class="w-full p-2 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring">
+                        <option value="">All</option>
+                        <option value="hot">Hot - ساخن</option>
+                        <option value="cold">Cold - بارد</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Quick Filters -->
+            <div class="flex flex-wrap gap-2 mt-4">
+                <button class="px-3 py-1 text-sm bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors">
+                    <span class="ltr-content">All</span>
+                    <span class="rtl-content hidden">الكل</span>
+                </button>
+                <button class="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-colors">
+                    <span class="ltr-content">5 Stars</span>
+                    <span class="rtl-content hidden">5 نجوم</span>
+                </button>
+                <button class="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-colors">
+                    <span class="ltr-content">Quick Recipes</span>
+                    <span class="rtl-content hidden">وصفات سريعة</span>
+                </button>
+                <button class="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/80 transition-colors">
+                    <span class="ltr-content">Vegetarian</span>
+                    <span class="rtl-content hidden">نباتي</span>
+                </button>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: SearchFilters -->
+
+        <!-- Add Recipe Button -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-foreground">
+                <span class="ltr-content">My Recipes</span>
+                <span class="rtl-content hidden">وصفاتي</span>
+            </h2>
+            <button onclick="showAddRecipeModal()" class="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2 rtl:space-x-reverse shadow-md">
+                <i class="fas fa-plus"></i>
+                <span class="ltr-content">Add New Recipe</span>
+                <span class="rtl-content hidden">إضافة وصفة جديدة</span>
+            </button>
+        </div>
+
+        <!-- Recipe Grid -->
+        <!-- @COMPONENT: RecipeGrid [displays recipe cards] -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <!-- Recipe Card 1 -->
+            <!-- @COMPONENT: RecipeCard [individual recipe display] -->
+            <div class="recipe-card bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+                <!-- Traditional Egyptian Koshari with rice, lentils, and pasta topped with crispy onions -->
+                <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" 
+                     alt="Egyptian Koshari" 
+                     class="w-full h-48 object-cover">
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg text-foreground">
+                            <span class="ltr-content">Egyptian Koshari</span>
+                            <span class="rtl-content hidden">كشري مصري</span>
+                        </h3>
+                        <div class="flex items-center space-x-1 rtl:space-x-reverse">
+                            <span class="text-sm font-medium">4.8</span>
+                            <div class="star-rating">
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                        <span>
+                            <i class="fas fa-globe-africa mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Egypt</span>
+                            <span class="rtl-content hidden">مصر</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-fire mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Hot</span>
+                            <span class="rtl-content hidden">ساخن</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-leaf mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            450 cal
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <span class="ltr-content">Traditional Egyptian comfort food with rice, lentils, and pasta topped with spicy tomato sauce.</span>
+                        <span class="rtl-content hidden">طعام مصري تقليدي مريح مع الأرز والعدس والمعكرونة مع صلصة الطماطم الحارة.</span>
+                    </p>
+                    
+                    <div class="flex space-x-2 rtl:space-x-reverse">
+                        <button class="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors text-sm">
+                            <span class="ltr-content">View Recipe</span>
+                            <span class="rtl-content hidden">عرض الوصفة</span>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-heart text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-share text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: RecipeCard -->
+
+            <!-- Recipe Card 2 -->
+            <div class="recipe-card bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+                <!-- Fresh Italian pasta carbonara with creamy sauce, pancetta, and fresh herbs -->
+                <img src="https://pixabay.com/get/g9e2ab34c728b9f04d3408e0b5d72ec13d01d79ffa9000ed7d96701e2c2fa2055484cf9d736093553ff2242a53f54d525d3d68e847df7f18314053819f2ff13f9_1280.jpg" 
+                     alt="Pasta Carbonara" 
+                     class="w-full h-48 object-cover">
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg text-foreground">
+                            <span class="ltr-content">Pasta Carbonara</span>
+                            <span class="rtl-content hidden">باستا كاربونارا</span>
+                        </h3>
+                        <div class="flex items-center space-x-1 rtl:space-x-reverse">
+                            <span class="text-sm font-medium">4.5</span>
+                            <div class="star-rating">
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="far fa-star star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                        <span>
+                            <i class="fas fa-globe-europe mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Italy</span>
+                            <span class="rtl-content hidden">إيطاليا</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-fire mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Hot</span>
+                            <span class="rtl-content hidden">ساخن</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-leaf mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            680 cal
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <span class="ltr-content">Classic Roman pasta dish with eggs, cheese, pancetta, and black pepper.</span>
+                        <span class="rtl-content hidden">طبق معكرونة روماني كلاسيكي مع البيض والجبن والبانشيتا والفلفل الأسود.</span>
+                    </p>
+                    
+                    <div class="flex space-x-2 rtl:space-x-reverse">
+                        <button class="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors text-sm">
+                            <span class="ltr-content">View Recipe</span>
+                            <span class="rtl-content hidden">عرض الوصفة</span>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-heart text-destructive"></i>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-share text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipe Card 3 -->
+            <div class="recipe-card bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+                <!-- Fresh Mexican tacos with seasoned meat, vegetables, and traditional toppings -->
+                <img src="https://pixabay.com/get/ged01cab2897673e63f0499df721303476c9faa27ef54f78b78b35c3c5964781d2802767b6033641ae2278b0f608cddd56b8318e1eaef617ecb124e1abed9f64d_1280.jpg" 
+                     alt="Mexican Tacos" 
+                     class="w-full h-48 object-cover">
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg text-foreground">
+                            <span class="ltr-content">Mexican Tacos</span>
+                            <span class="rtl-content hidden">تاكو مكسيكي</span>
+                        </h3>
+                        <div class="flex items-center space-x-1 rtl:space-x-reverse">
+                            <span class="text-sm font-medium">4.7</span>
+                            <div class="star-rating">
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                        <span>
+                            <i class="fas fa-globe-americas mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Mexico</span>
+                            <span class="rtl-content hidden">المكسيك</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-fire mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Hot</span>
+                            <span class="rtl-content hidden">ساخن</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-leaf mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            320 cal
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <span class="ltr-content">Authentic Mexican tacos with seasoned beef, fresh vegetables, and homemade salsa.</span>
+                        <span class="rtl-content hidden">تاكو مكسيكي أصيل مع لحم البقر المتبل والخضار الطازجة والسالسا المنزلية.</span>
+                    </p>
+                    
+                    <div class="flex space-x-2 rtl:space-x-reverse">
+                        <button class="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors text-sm">
+                            <span class="ltr-content">View Recipe</span>
+                            <span class="rtl-content hidden">عرض الوصفة</span>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-heart text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-share text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipe Card 4 -->
+            <div class="recipe-card bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+                <!-- Refreshing Greek salad with fresh vegetables, olives, and feta cheese -->
+                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=250" 
+                     alt="Greek Salad" 
+                     class="w-full h-48 object-cover">
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg text-foreground">
+                            <span class="ltr-content">Greek Salad</span>
+                            <span class="rtl-content hidden">سلطة يونانية</span>
+                        </h3>
+                        <div class="flex items-center space-x-1 rtl:space-x-reverse">
+                            <span class="text-sm font-medium">4.3</span>
+                            <div class="star-rating">
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="fas fa-star star filled"></i>
+                                <i class="far fa-star star"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-sm text-muted-foreground mb-3">
+                        <span>
+                            <i class="fas fa-globe-europe mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Greece</span>
+                            <span class="rtl-content hidden">اليونان</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-snowflake mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            <span class="ltr-content">Cold</span>
+                            <span class="rtl-content hidden">بارد</span>
+                        </span>
+                        <span>
+                            <i class="fas fa-leaf mr-1 rtl:mr-0 rtl:ml-1"></i>
+                            220 cal
+                        </span>
+                    </div>
+                    
+                    <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <span class="ltr-content">Fresh and healthy Mediterranean salad with tomatoes, cucumbers, olives, and feta cheese.</span>
+                        <span class="rtl-content hidden">سلطة متوسطية طازجة وصحية مع الطماطم والخيار والزيتون وجبنة الفيتا.</span>
+                    </p>
+                    
+                    <div class="flex space-x-2 rtl:space-x-reverse">
+                        <button class="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors text-sm">
+                            <span class="ltr-content">View Recipe</span>
+                            <span class="rtl-content hidden">عرض الوصفة</span>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-heart text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                            <i class="fas fa-share text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: RecipeGrid -->
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center space-x-2 rtl:space-x-reverse">
+            <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                <i class="fas fa-chevron-left rtl:rotate-180"></i>
+            </button>
+            <button class="px-4 py-2 bg-primary text-primary-foreground rounded-md">1</button>
+            <button class="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors">2</button>
+            <button class="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors">3</button>
+            <button class="p-2 border border-border rounded-md hover:bg-muted transition-colors">
+                <i class="fas fa-chevron-right rtl:rotate-180"></i>
+            </button>
+        </div>
+    </main>
+    <!-- @END_COMPONENT: MainContent -->
+
+    <!-- Add Recipe Modal -->
+    <!-- @COMPONENT: AddRecipeModal [comprehensive recipe creation form] -->
+    <div id="addRecipeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-card border-b border-border p-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-foreground">
+                        <span class="ltr-content">Add New Recipe</span>
+                        <span class="rtl-content hidden">إضافة وصفة جديدة</span>
+                    </h2>
+                    <button onclick="hideAddRecipeModal()" class="p-2 hover:bg-muted rounded-lg transition-colors">
+                        <i class="fas fa-times text-foreground"></i>
+                    </button>
+                </div>
+
+                <form class="p-6 space-y-6">
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Recipe Name (English) -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                Recipe Name (English) *
+                            </label>
+                            <input type="text" required 
+                                   class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="Enter recipe name in English">
+                        </div>
+
+                        <!-- Recipe Name (Arabic) -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                اسم الوصفة (العربية) *
+                            </label>
+                            <input type="text" required 
+                                   class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent text-right"
+                                   placeholder="أدخل اسم الوصفة بالعربية">
+                        </div>
+
+                        <!-- Country -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                <span class="ltr-content">Country of Origin *</span>
+                                <span class="rtl-content hidden">بلد المنشأ *</span>
+                            </label>
+                            <select required class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring">
+                                <option value="">Select Country</option>
+                                <option value="egypt">Egypt - مصر</option>
+                                <option value="lebanon">Lebanon - لبنان</option>
+                                <option value="syria">Syria - سوريا</option>
+                                <option value="morocco">Morocco - المغرب</option>
+                                <option value="italy">Italy - إيطاليا</option>
+                                <option value="france">France - فرنسا</option>
+                                <option value="india">India - الهند</option>
+                                <option value="mexico">Mexico - المكسيك</option>
+                                <option value="greece">Greece - اليونان</option>
+                                <option value="turkey">Turkey - تركيا</option>
+                            </select>
+                        </div>
+
+                        <!-- Serving Temperature -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                <span class="ltr-content">Serving Temperature *</span>
+                                <span class="rtl-content hidden">درجة حرارة التقديم *</span>
+                            </label>
+                            <select required class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring">
+                                <option value="">Select Temperature</option>
+                                <option value="hot">Hot - ساخن</option>
+                                <option value="cold">Cold - بارد</option>
+                                <option value="room_temp">Room Temperature - درجة حرارة الغرفة</option>
+                            </select>
+                        </div>
+
+                        <!-- Calories -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                <span class="ltr-content">Calories (per serving)</span>
+                                <span class="rtl-content hidden">السعرات الحرارية (لكل حصة)</span>
+                            </label>
+                            <input type="number" min="0" 
+                                   class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="0">
+                        </div>
+
+                        <!-- Preparation Time -->
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                <span class="ltr-content">Preparation Time (minutes)</span>
+                                <span class="rtl-content hidden">وقت التحضير (بالدقائق)</span>
+                            </label>
+                            <input type="number" min="0" 
+                                   class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="30">
+                        </div>
+                    </div>
+
+                    <!-- Images Section -->
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">
+                            <span class="ltr-content">Recipe Images</span>
+                            <span class="rtl-content hidden">صور الوصفة</span>
+                        </label>
+                        <div class="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-muted-foreground mb-2"></i>
+                            <p class="text-muted-foreground mb-2">
+                                <span class="ltr-content">Drag and drop images here, or click to browse</span>
+                                <span class="rtl-content hidden">اسحب وأفلت الصور هنا، أو انقر للتصفح</span>
+                            </p>
+                            <input type="file" multiple accept="image/*" class="hidden" id="imageUpload">
+                            <button type="button" onclick="document.getElementById('imageUpload').click()" 
+                                    class="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
+                                <span class="ltr-content">Choose Files</span>
+                                <span class="rtl-content hidden">اختر الملفات</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video Tutorial -->
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">
+                            <span class="ltr-content">Video Tutorial URL</span>
+                            <span class="rtl-content hidden">رابط فيديو الشرح</span>
+                        </label>
+                        <input type="url" 
+                               class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent"
+                               placeholder="https://youtube.com/watch?v=...">
+                        <p class="text-sm text-muted-foreground mt-1">
+                            <span class="ltr-content">Supports YouTube, Vimeo, and direct video links</span>
+                            <span class="rtl-content hidden">يدعم يوتيوب وفيميو والروابط المباشرة للفيديو</span>
+                        </p>
+                    </div>
+
+                    <!-- Ingredients Section -->
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">
+                            <span class="ltr-content">Ingredients</span>
+                            <span class="rtl-content hidden">المقادير</span>
+                        </label>
+                        <div class="space-y-3" id="ingredientsList">
+                            <div class="flex space-x-2 rtl:space-x-reverse">
+                                <input type="text" 
+                                       class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                                       placeholder="Ingredient name (English)">
+                                <input type="text" 
+                                       class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring text-right"
+                                       placeholder="اسم المكون (العربية)">
+                                <input type="text" 
+                                       class="w-32 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                                       placeholder="Amount">
+                                <button type="button" onclick="removeIngredient(this)" 
+                                        class="p-3 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addIngredient()" 
+                                class="mt-3 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 transition-colors">
+                            <i class="fas fa-plus mr-2 rtl:mr-0 rtl:ml-2"></i>
+                            <span class="ltr-content">Add Ingredient</span>
+                            <span class="rtl-content hidden">إضافة مكون</span>
+                        </button>
+                    </div>
+
+                    <!-- Preparation Instructions -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                Preparation Instructions (English) *
+                            </label>
+                            <textarea required rows="8" 
+                                      class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
+                                      placeholder="Step-by-step instructions in English..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">
+                                طريقة التحضير (العربية) *
+                            </label>
+                            <textarea required rows="8" 
+                                      class="w-full p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring focus:border-transparent resize-none text-right"
+                                      placeholder="تعليمات التحضير خطوة بخطوة بالعربية..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Required Tools -->
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">
+                            <span class="ltr-content">Required Tools & Equipment</span>
+                            <span class="rtl-content hidden">الأدوات والمعدات المطلوبة</span>
+                        </label>
+                        <div class="space-y-3" id="toolsList">
+                            <div class="flex space-x-2 rtl:space-x-reverse">
+                                <input type="text" 
+                                       class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                                       placeholder="Tool name (English)">
+                                <input type="text" 
+                                       class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring text-right"
+                                       placeholder="اسم الأداة (العربية)">
+                                <button type="button" onclick="removeTool(this)" 
+                                        class="p-3 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addTool()" 
+                                class="mt-3 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 transition-colors">
+                            <i class="fas fa-plus mr-2 rtl:mr-0 rtl:ml-2"></i>
+                            <span class="ltr-content">Add Tool</span>
+                            <span class="rtl-content hidden">إضافة أداة</span>
+                        </button>
+                    </div>
+
+                    <!-- Additional Links -->
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">
+                            <span class="ltr-content">Additional Links</span>
+                            <span class="rtl-content hidden">روابط إضافية</span>
+                        </label>
+                        <div class="space-y-3" id="linksList">
+                            <div class="flex space-x-2 rtl:space-x-reverse">
+                                <input type="text" 
+                                       class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                                       placeholder="Link title">
+                                <input type="url" 
+                                       class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                                       placeholder="https://...">
+                                <button type="button" onclick="removeLink(this)" 
+                                        class="p-3 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addLink()" 
+                                class="mt-3 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 transition-colors">
+                            <i class="fas fa-plus mr-2 rtl:mr-0 rtl:ml-2"></i>
+                            <span class="ltr-content">Add Link</span>
+                            <span class="rtl-content hidden">إضافة رابط</span>
+                        </button>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 rtl:space-x-reverse pt-4 border-t border-border">
+                        <button type="button" onclick="hideAddRecipeModal()" 
+                                class="px-6 py-3 border border-border rounded-md hover:bg-muted transition-colors">
+                            <span class="ltr-content">Cancel</span>
+                            <span class="rtl-content hidden">إلغاء</span>
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                            <span class="ltr-content">Save Recipe</span>
+                            <span class="rtl-content hidden">حفظ الوصفة</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: AddRecipeModal -->
+
+    <!-- Recipe Detail Modal -->
+    <!-- @COMPONENT: RecipeDetailModal [detailed recipe view] -->
+    <div id="recipeDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-card rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="sticky top-0 bg-card border-b border-border p-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-foreground">
+                        <span class="ltr-content">Egyptian Koshari</span>
+                        <span class="rtl-content hidden">كشري مصري</span>
+                    </h2>
+                    <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                        <!-- Rating -->
+                        <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                            <div class="star-rating">
+                                <i class="fas fa-star star filled text-lg"></i>
+                                <i class="fas fa-star star filled text-lg"></i>
+                                <i class="fas fa-star star filled text-lg"></i>
+                                <i class="fas fa-star star filled text-lg"></i>
+                                <i class="fas fa-star star filled text-lg"></i>
+                            </div>
+                            <span class="text-lg font-semibold">4.8</span>
+                        </div>
+                        <button onclick="hideRecipeDetailModal()" class="p-2 hover:bg-muted rounded-lg transition-colors">
+                            <i class="fas fa-times text-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Left Column: Images and Video -->
+                        <div class="lg:col-span-2">
+                            <!-- Image Gallery -->
+                            <!-- Traditional Egyptian Koshari with layers of rice, lentils, and pasta -->
+                            <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400" 
+                                 alt="Egyptian Koshari" 
+                                 class="w-full h-64 object-cover rounded-lg mb-4">
+
+                            <!-- Video Section -->
+                            <div class="bg-muted rounded-lg p-4 mb-6">
+                                <h3 class="font-semibold text-lg mb-3">
+                                    <span class="ltr-content">Video Tutorial</span>
+                                    <span class="rtl-content hidden">فيديو تعليمي</span>
+                                </h3>
+                                <div class="aspect-video bg-secondary rounded-lg flex items-center justify-center">
+                                    <div class="text-center">
+                                        <i class="fas fa-play-circle text-4xl text-muted-foreground mb-2"></i>
+                                        <p class="text-muted-foreground">
+                                            <span class="ltr-content">Click to watch tutorial</span>
+                                            <span class="rtl-content hidden">انقر لمشاهدة الشرح</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Recipe Details -->
+                        <div>
+                            <!-- Quick Info -->
+                            <div class="bg-muted rounded-lg p-4 mb-6">
+                                <h3 class="font-semibold text-lg mb-3">
+                                    <span class="ltr-content">Quick Info</span>
+                                    <span class="rtl-content hidden">معلومات سريعة</span>
+                                </h3>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-muted-foreground">
+                                            <span class="ltr-content">Country:</span>
+                                            <span class="rtl-content hidden">البلد:</span>
+                                        </span>
+                                        <span class="font-medium">
+                                            <span class="ltr-content">Egypt</span>
+                                            <span class="rtl-content hidden">مصر</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-muted-foreground">
+                                            <span class="ltr-content">Serving:</span>
+                                            <span class="rtl-content hidden">التقديم:</span>
+                                        </span>
+                                        <span class="font-medium">
+                                            <span class="ltr-content">Hot</span>
+                                            <span class="rtl-content hidden">ساخن</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-muted-foreground">
+                                            <span class="ltr-content">Calories:</span>
+                                            <span class="rtl-content hidden">السعرات:</span>
+                                        </span>
+                                        <span class="font-medium">450 cal</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-muted-foreground">
+                                            <span class="ltr-content">Prep Time:</span>
+                                            <span class="rtl-content hidden">وقت التحضير:</span>
+                                        </span>
+                                        <span class="font-medium">45 min</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tools Required -->
+                            <div class="bg-muted rounded-lg p-4 mb-6">
+                                <h3 class="font-semibold text-lg mb-3">
+                                    <span class="ltr-content">Tools Required</span>
+                                    <span class="rtl-content hidden">الأدوات المطلوبة</span>
+                                </h3>
+                                <ul class="space-y-2">
+                                    <li class="flex items-center space-x-2 rtl:space-x-reverse">
+                                        <i class="fas fa-check text-accent text-sm"></i>
+                                        <span>
+                                            <span class="ltr-content">Large pot</span>
+                                            <span class="rtl-content hidden">قدر كبير</span>
+                                        </span>
+                                    </li>
+                                    <li class="flex items-center space-x-2 rtl:space-x-reverse">
+                                        <i class="fas fa-check text-accent text-sm"></i>
+                                        <span>
+                                            <span class="ltr-content">Frying pan</span>
+                                            <span class="rtl-content hidden">مقلاة</span>
+                                        </span>
+                                    </li>
+                                    <li class="flex items-center space-x-2 rtl:space-x-reverse">
+                                        <i class="fas fa-check text-accent text-sm"></i>
+                                        <span>
+                                            <span class="ltr-content">Strainer</span>
+                                            <span class="rtl-content hidden">مصفاة</span>
+                                        </span>
+                                    </li>
+                                    <li class="flex items-center space-x-2 rtl:space-x-reverse">
+                                        <i class="fas fa-check text-accent text-sm"></i>
+                                        <span>
+                                            <span class="ltr-content">Wooden spoon</span>
+                                            <span class="rtl-content hidden">ملعقة خشبية</span>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="space-y-3">
+                                <button class="w-full bg-primary text-primary-foreground py-3 rounded-md hover:bg-primary/90 transition-colors">
+                                    <i class="fas fa-edit mr-2 rtl:mr-0 rtl:ml-2"></i>
+                                    <span class="ltr-content">Edit Recipe</span>
+                                    <span class="rtl-content hidden">تعديل الوصفة</span>
+                                </button>
+                                <button class="w-full bg-accent text-accent-foreground py-3 rounded-md hover:bg-accent/90 transition-colors">
+                                    <i class="fas fa-heart mr-2 rtl:mr-0 rtl:ml-2"></i>
+                                    <span class="ltr-content">Add to Favorites</span>
+                                    <span class="rtl-content hidden">إضافة للمفضلة</span>
+                                </button>
+                                <button class="w-full bg-secondary text-secondary-foreground py-3 rounded-md hover:bg-secondary/80 transition-colors">
+                                    <i class="fas fa-share mr-2 rtl:mr-0 rtl:ml-2"></i>
+                                    <span class="ltr-content">Share Recipe</span>
+                                    <span class="rtl-content hidden">مشاركة الوصفة</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ingredients and Instructions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                        <!-- Ingredients -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">
+                                <span class="ltr-content">Ingredients</span>
+                                <span class="rtl-content hidden">المقادير</span>
+                            </h3>
+                            <div class="bg-muted rounded-lg p-4">
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between items-center p-2 bg-card rounded border border-border">
+                                        <span>
+                                            <span class="ltr-content">Basmati Rice</span>
+                                            <span class="rtl-content hidden">أرز بسمتي</span>
+                                        </span>
+                                        <span class="font-medium">2 cups</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2 bg-card rounded border border-border">
+                                        <span>
+                                            <span class="ltr-content">Brown Lentils</span>
+                                            <span class="rtl-content hidden">عدس بني</span>
+                                        </span>
+                                        <span class="font-medium">1 cup</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2 bg-card rounded border border-border">
+                                        <span>
+                                            <span class="ltr-content">Pasta (Small shells)</span>
+                                            <span class="rtl-content hidden">معكرونة (أصداف صغيرة)</span>
+                                        </span>
+                                        <span class="font-medium">1 cup</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2 bg-card rounded border border-border">
+                                        <span>
+                                            <span class="ltr-content">Onions</span>
+                                            <span class="rtl-content hidden">بصل</span>
+                                        </span>
+                                        <span class="font-medium">3 large</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2 bg-card rounded border border-border">
+                                        <span>
+                                            <span class="ltr-content">Tomato Sauce</span>
+                                            <span class="rtl-content hidden">صلصة طماطم</span>
+                                        </span>
+                                        <span class="font-medium">2 cups</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2 bg-card rounded border border-border">
+                                        <span>
+                                            <span class="ltr-content">Garlic</span>
+                                            <span class="rtl-content hidden">ثوم</span>
+                                        </span>
+                                        <span class="font-medium">4 cloves</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div>
+                            <h3 class="text-xl font-bold mb-4">
+                                <span class="ltr-content">Instructions</span>
+                                <span class="rtl-content hidden">طريقة التحضير</span>
+                            </h3>
+                            <div class="bg-muted rounded-lg p-4">
+                                <ol class="space-y-4">
+                                    <li class="flex space-x-3 rtl:space-x-reverse">
+                                        <span class="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">1</span>
+                                        <div>
+                                            <p class="ltr-content">Cook the lentils in boiling water for 15-20 minutes until tender. Drain and set aside.</p>
+                                            <p class="rtl-content hidden text-right">اطبخ العدس في ماء مغلي لمدة 15-20 دقيقة حتى ينضج. صفي واتركه جانباً.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex space-x-3 rtl:space-x-reverse">
+                                        <span class="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">2</span>
+                                        <div>
+                                            <p class="ltr-content">Cook the rice separately according to package instructions. Fluff with a fork when done.</p>
+                                            <p class="rtl-content hidden text-right">اطبخ الأرز بشكل منفصل حسب التعليمات على العبوة. اخلطه بالشوكة عند النضج.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex space-x-3 rtl:space-x-reverse">
+                                        <span class="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">3</span>
+                                        <div>
+                                            <p class="ltr-content">Cook the pasta according to package directions until al dente. Drain.</p>
+                                            <p class="rtl-content hidden text-right">اطبخ المعكرونة حسب التعليمات حتى تنضج قليلاً. صفيها.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex space-x-3 rtl:space-x-reverse">
+                                        <span class="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">4</span>
+                                        <div>
+                                            <p class="ltr-content">Slice onions thinly and fry until golden brown and crispy. Remove and drain on paper towels.</p>
+                                            <p class="rtl-content hidden text-right">اقطع البصل شرائح رفيعة واقليه حتى يصبح ذهبي ومقرمش. ارفعه وصفيه على ورق المطبخ.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex space-x-3 rtl:space-x-reverse">
+                                        <span class="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">5</span>
+                                        <div>
+                                            <p class="ltr-content">Layer the rice, lentils, and pasta in a serving dish. Top with tomato sauce and crispy onions.</p>
+                                            <p class="rtl-content hidden text-right">رتب الأرز والعدس والمعكرونة في طبق التقديم. اضع الصلصة والبصل المقلي في الأعلى.</p>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: RecipeDetailModal -->
+
+    <!-- JavaScript -->
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (() => {
+            let currentLanguage = 'en';
+            
+            // Language Toggle Functionality
+            window.toggleLanguage = function() {
+                const toggle = document.querySelector('.language-toggle');
+                const html = document.documentElement;
+                const ltrContent = document.querySelectorAll('.ltr-content');
+                const rtlContent = document.querySelectorAll('.rtl-content');
+                
+                if (currentLanguage === 'en') {
+                    currentLanguage = 'ar';
+                    html.setAttribute('lang', 'ar');
+                    html.setAttribute('dir', 'rtl');
+                    toggle.classList.add('arabic');
+                    
+                    ltrContent.forEach(el => el.classList.add('hidden'));
+                    rtlContent.forEach(el => el.classList.remove('hidden'));
+                } else {
+                    currentLanguage = 'en';
+                    html.setAttribute('lang', 'en');
+                    html.setAttribute('dir', 'ltr');
+                    toggle.classList.remove('arabic');
+                    
+                    ltrContent.forEach(el => el.classList.remove('hidden'));
+                    rtlContent.forEach(el => el.classList.add('hidden'));
+                }
+                
+                // TODO: Save language preference to localStorage
+                localStorage.setItem('preferredLanguage', currentLanguage);
+            };
+            
+            // Modal Functions
+            window.showAddRecipeModal = function() {
+                document.getElementById('addRecipeModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            };
+            
+            window.hideAddRecipeModal = function() {
+                document.getElementById('addRecipeModal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            };
+            
+            window.showRecipeDetailModal = function() {
+                document.getElementById('recipeDetailModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            };
+            
+            window.hideRecipeDetailModal = function() {
+                document.getElementById('recipeDetailModal').classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            };
+            
+            // Dynamic Form Functions
+            window.addIngredient = function() {
+                const container = document.getElementById('ingredientsList');
+                const newIngredient = document.createElement('div');
+                newIngredient.className = 'flex space-x-2 rtl:space-x-reverse';
+                newIngredient.innerHTML = `
+                    <input type="text" 
+                           class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                           placeholder="Ingredient name (English)">
+                    <input type="text" 
+                           class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring text-right"
+                           placeholder="اسم المكون (العربية)">
+                    <input type="text" 
+                           class="w-32 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                           placeholder="Amount">
+                    <button type="button" onclick="removeIngredient(this)" 
+                            class="p-3 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(newIngredient);
+            };
+            
+            window.removeIngredient = function(button) {
+                button.parentElement.remove();
+            };
+            
+            window.addTool = function() {
+                const container = document.getElementById('toolsList');
+                const newTool = document.createElement('div');
+                newTool.className = 'flex space-x-2 rtl:space-x-reverse';
+                newTool.innerHTML = `
+                    <input type="text" 
+                           class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                           placeholder="Tool name (English)">
+                    <input type="text" 
+                           class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring text-right"
+                           placeholder="اسم الأداة (العربية)">
+                    <button type="button" onclick="removeTool(this)" 
+                            class="p-3 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(newTool);
+            };
+            
+            window.removeTool = function(button) {
+                button.parentElement.remove();
+            };
+            
+            window.addLink = function() {
+                const container = document.getElementById('linksList');
+                const newLink = document.createElement('div');
+                newLink.className = 'flex space-x-2 rtl:space-x-reverse';
+                newLink.innerHTML = `
+                    <input type="text" 
+                           class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                           placeholder="Link title">
+                    <input type="url" 
+                           class="flex-1 p-3 border border-input rounded-md bg-background focus:ring-2 focus:ring-ring"
+                           placeholder="https://...">
+                    <button type="button" onclick="removeLink(this)" 
+                            class="p-3 border border-destructive text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(newLink);
+            };
+            
+            window.removeLink = function(button) {
+                button.parentElement.remove();
+            };
+            
+            // Initialize app
+            document.addEventListener('DOMContentLoaded', function() {
+                // Load saved language preference
+                const savedLanguage = localStorage.getItem('preferredLanguage');
+                if (savedLanguage && savedLanguage !== currentLanguage) {
+                    toggleLanguage();
+                }
+                
+                // Add click handlers for recipe cards
+                const recipeCards = document.querySelectorAll('.recipe-card button');
+                recipeCards.forEach(card => {
+                    if (card.textContent.includes('View Recipe') || card.textContent.includes('عرض الوصفة')) {
+                        card.addEventListener('click', showRecipeDetailModal);
+                    }
+                });
+                
+                // Close modals when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('fixed') && e.target.classList.contains('inset-0')) {
+                        hideAddRecipeModal();
+                        hideRecipeDetailModal();
+                    }
+                });
+                
+                // Form submission handler
+                const recipeForm = document.querySelector('#addRecipeModal form');
+                if (recipeForm) {
+                    recipeForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        // TODO: Implement form validation and submission
+                        console.log('Recipe form submitted');
+                        hideAddRecipeModal();
+                    });
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
